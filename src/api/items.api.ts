@@ -39,7 +39,7 @@ export type CreateItemPayload = {
 };
 
 export const itemsApi = {
-  list: (params?: { skip?: number; limit?: number; category_id?: string; owner_id?: string }) =>
+  list: (params?: { search?: string; skip?: number; limit?: number; category_id?: string; owner_id?: string }) =>
     api.get<ItemListResponse>("/items", { params }).then((res) => res.data),
 
   get: (id: string) => api.get<Item>(`/items/${id}`).then((res) => res.data),

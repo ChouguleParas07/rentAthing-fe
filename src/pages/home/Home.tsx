@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
@@ -7,7 +8,13 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
 const Home = () => {
-  const { data, isLoading } = useItems({ limit: 12 });
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+  const { data, isLoading } = useItems({ limit: 12, search: searchQuery });
+
+  const handleSearch = () => {
+    setSearchQuery(searchInput || undefined);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
@@ -41,11 +48,17 @@ const Home = () => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="What do you need?"
                 className="w-full h-12 pl-12 pr-4 bg-transparent outline-none text-gray-900 placeholder-gray-500"
               />
             </div>
-            <Button className="rounded-full h-12 px-8 bg-green-600 hover:bg-green-700 text-white font-medium text-lg">
+            <Button
+              onClick={handleSearch}
+              className="rounded-full h-12 px-8 bg-green-600 hover:bg-green-700 text-white font-medium text-lg"
+            >
               Search
             </Button>
           </motion.div>
@@ -54,7 +67,9 @@ const Home = () => {
 
       {/* Featured Items Grid */}
       <section className="py-20 px-4 container mx-auto max-w-7xl">
-        <h2 className="text-3xl font-bold text-gray-900 mb-10">Latest Additions</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-10">
+          {searchQuery ? `Search Results for "${searchQuery}"` : "Latest Additions"}
+        </h2>
 
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

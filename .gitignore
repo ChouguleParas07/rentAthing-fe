@@ -26,3 +26,29 @@ rentAthing-fe/
 *.njsproj
 *.sln
 *.sw?
+Thumbs.db
+ehthumbs.db
+.pnp*
+.pnp.js
+.yarn/
+# Build and output
+build/
+out/
+coverage/
+.nyc_output/
+*.tgz
+
+# Caches
+.cache/
+.vite/
+.parcel-cache/
+.svgr-cache/
+
+# Local env files (keep examples)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Misc
+.history/
