@@ -8,6 +8,7 @@ import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import Home from "../pages/home/Home";
 import ItemDetails from "../pages/items/ItemDetails";
+import Products from "../pages/items/Products";
 import Profile from "../pages/profile/Profile";
 import { ROUTES } from "./routes";
 
@@ -17,6 +18,7 @@ const AppRoutes = () => {
       <Routes>
         <Route element={<MainLayout />}>
           <Route path={ROUTES.HOME} element={<Home />} />
+          <Route path={ROUTES.PRODUCTS} element={<Products />} />
           <Route path="/items/:id" element={<ItemDetails />} />
         </Route>
 

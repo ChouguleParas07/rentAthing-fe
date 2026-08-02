@@ -100,12 +100,16 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {items.items.map((item) => (
                     <div key={item.id} className="rounded-xl border border-gray-200 overflow-hidden">
-                      <div className="aspect-video bg-gray-100">
-                        {item.images?.[0] && <img src={item.images[0]} className="w-full h-full object-cover" />}
+                      <div className="aspect-video bg-gray-100 relative overflow-hidden">
+                        <img
+                          src={item.images?.url ? `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}` : `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          alt={item.title}
+                        />
                       </div>
                       <div className="p-4">
                         <h3 className="font-semibold text-gray-900 line-clamp-1">{item.title}</h3>
-                        <p className="text-sm text-gray-500 mt-1">${item.daily_rate}/day</p>
+                        <p className="text-sm text-gray-500 mt-1">${item.daily_price}/day</p>
                       </div>
                     </div>
                   ))}
