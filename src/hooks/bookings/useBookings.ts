@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { bookingsApi, type CreateBookingPayload, type BookingStatus } from "@/api/bookings.api";
 
-export const useBookings = (params?: { skip?: number; limit?: number; item_id?: string; renter_id?: string }) => {
+export const useBookings = (params?: { skip?: number; limit?: number; item_id?: string; renter_id?: string; owner_id?: string }) => {
   return useQuery({
     queryKey: ["bookings", params],
     queryFn: () => bookingsApi.list(params),

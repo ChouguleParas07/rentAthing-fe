@@ -91,10 +91,17 @@ const Home = () => {
                   <Card className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 bg-white/70">
                     <div className="aspect-square relative overflow-hidden bg-gray-100">
                       <img
-                        src={item.images?.url ? `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}` : `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`}
+                        src={item.images?.[0]?.url || `https://placehold.co/400x300/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`}
                         alt={item.title}
                         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          e.currentTarget.src = `https://placehold.co/400x300/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`;
+                        }}
                       />
+
+
                       <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-sm font-bold text-green-700 shadow-sm">
                         ${item.daily_price}/day
                       </div>

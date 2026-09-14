@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Calendar, ShieldCheck, MapPin, Star, User } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Star, User } from "lucide-react";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import { useQuery } from "@tanstack/react-query";
+import { bookingsApi } from "@/api/bookings.api";
+import ReviewList from "@/components/reviews/ReviewList";
 
 import { useItem } from "@/hooks/items/useItem";
 import { useCreateBooking } from "@/hooks/bookings/useBookings";
@@ -18,6 +25,29 @@ const ItemDetails = () => {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  const { data: bookingsData } = useQuery({
+    queryKey: ["bookings", "item", id],
+    queryFn: () => bookingsApi.list({ item_id: id }),
+    enabled: !!id,
+  });
+
+  const getTileClassName = ({ date, view }: any) => {
+    if (view === 'month') {
+      const isBooked = bookingsData?.items.some((b) => {
+        if (b.status === "CANCELLED" || b.status === "REJECTED") return false;
+        const start = new Date(b.start_date);
+        const end = new Date(b.end_date);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+        const current = new Date(date);
+        current.setHours(0, 0, 0, 0);
+        return current >= start && current <= end;
+      });
+      return isBooked ? 'bg-red-100 text-red-500 font-bold rounded-lg' : null;
+    }
+    return null;
+  };
 
   const calculateDays = () => {
     if (!startDate || !endDate) return 0;
@@ -81,24 +111,30 @@ const ItemDetails = () => {
             {/* Image Section */}
             <div className="relative bg-gray-100 aspect-square md:aspect-auto">
               <img
-                src={item.images?.url ? `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}` : `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`}
+                src={item.images?.[0]?.url || `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`}
                 alt={item.title}
                 className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  e.currentTarget.src = `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`;
+                }}
               />
+
+
             </div>
 
             {/* Details Section */}
             <div className="p-8 md:p-12 lg:p-16 flex flex-col">
-              <div className="flex items-center gap-2 text-sm text-green-700 font-bold mb-4 bg-green-50 w-fit px-3 py-1 rounded-full">
-                <ShieldCheck className="w-4 h-4" />
-                Verified Item
-              </div>
 
               <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">{item.title}</h1>
 
               <div className="flex items-center gap-4 text-gray-500 text-sm mb-6 pb-6 border-b border-gray-100">
-                <div className="flex items-center gap-1"><MapPin className="w-4 h-4" /> Local Pickup</div>
-                <div className="flex items-center gap-1 text-amber-500"><Star className="w-4 h-4 fill-current" /> 4.9 (12 reviews)</div>
+                <div className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {item.location_text || "Location not specified"}</div>
+                <div className="flex items-center gap-1 text-amber-500">
+                  <Star className="w-4 h-4 fill-current" />
+                  {item.rating_count > 0 ? `${item.avg_rating.toFixed(1)} (${item.rating_count} reviews)` : "No reviews"}
+                </div>
               </div>
 
               <p className="text-gray-600 text-lg leading-relaxed mb-8 flex-1">
@@ -131,10 +167,41 @@ const ItemDetails = () => {
                 className="w-full text-lg h-14 bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-600/20"
                 onClick={() => setIsBookingModalOpen(true)}
               >
-                <Calendar className="w-5 h-5 mr-2" />
+                <CalendarIcon className="w-5 h-5 mr-2" />
                 Request to Book
               </Button>
             </div>
+          </div>
+
+          {/* Map and Calendar Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-t border-gray-100">
+            <div className="p-8 md:p-12 lg:p-16 border-b md:border-b-0 md:border-r border-gray-100">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Location</h3>
+              <div className="h-64 w-full rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+                <MapContainer center={[item.location_lat || 40.7128, item.location_lng || -74.0060]} zoom={13} style={{ height: "100%", width: "100%" }}>
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <Marker position={[item.location_lat || 40.7128, item.location_lng || -74.0060]} />
+                </MapContainer>
+              </div>
+            </div>
+            <div className="p-8 md:p-12 lg:p-16">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Availability</h3>
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex justify-center">
+                <Calendar
+                  tileClassName={getTileClassName}
+                  className="border-0 font-sans w-full max-w-sm"
+                  minDate={item.available_from ? new Date(item.available_from) : new Date()}
+                  maxDate={item.available_until ? new Date(item.available_until) : undefined}
+                />
+              </div>
+            </div>
+          </div>
+          s
+          {/* Reviews Section */}
+          <div className="p-8 md:p-12 lg:p-16 border-t border-gray-100 bg-gray-50/50">
+            <ReviewList targetId={item.id} />
           </div>
         </div>
       </div>

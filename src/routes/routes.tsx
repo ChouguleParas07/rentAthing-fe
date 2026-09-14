@@ -1,27 +1,23 @@
 export const ROUTES = {
   HOME: "/",
 
-  LOGIN: "/login",
-
-  REGISTER: "/register",
-
-  PROFILE: "/profile",
-
   PRODUCTS: "/products",
 
   PRODUCT_DETAILS: "/products/:id",
 
-  CART: "/cart",
+  // Auth routes
+  LOGIN: "/login",
+  REGISTER: "/register",
+  VERIFY_EMAIL: "/verify-email",
+  FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
 
-  CHECKOUT: "/checkout",
-
-  ORDERS: "/orders",
-
-  CHAT: "/chat",
-
+  // Protected routes
   DASHBOARD: "/dashboard",
-
-  SETTINGS: "/settings",
+  PROFILE: "/profile",
+  MESSAGES: "/messages",
+  USER_PROFILE: "/user/:id",
+  ADMIN: "/admin",
 
   NOT_FOUND: "*",
 };

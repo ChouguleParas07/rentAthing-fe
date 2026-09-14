@@ -26,7 +26,7 @@ export type CreateBookingPayload = {
 };
 
 export const bookingsApi = {
-  list: (params?: { skip?: number; limit?: number; item_id?: string; renter_id?: string }) =>
+  list: (params?: { skip?: number; limit?: number; item_id?: string; renter_id?: string; owner_id?: string }) =>
     api.get<BookingListResponse>("/bookings", { params }).then((res) => res.data),
 
   get: (id: string) => api.get<Booking>(`/bookings/${id}`).then((res) => res.data),

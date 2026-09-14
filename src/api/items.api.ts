@@ -9,13 +9,20 @@ export type Category = {
 export type Item = {
   id: string;
   owner_id: string;
+  category: Category;
   category_id: string;
   title: string;
   description: string;
   daily_price: number;
   security_deposit: number;
+  location_lat: number;
+  location_lng: number;
   location_text: string | null;
-  images: { url: string } | null;
+  available_from: string;
+  available_until: string | null;
+  images: { url: string }[] | null;
+  avg_rating: number;
+  rating_count: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -51,4 +58,12 @@ export const itemsApi = {
     api.patch<Item>(`/items/${id}`, payload).then((res) => res.data),
 
   delete: (id: string) => api.delete(`/items/${id}`).then((res) => res.data),
+
+  uploadImage: (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.post<{ url: string }>("/items/images", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }).then((res) => res.data);
+  },
 };

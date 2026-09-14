@@ -28,15 +28,15 @@ const Login = () => {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-green-50 via-white to-emerald-50">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md rounded-2xl bg-white/80 backdrop-blur-xl p-8 shadow-xl shadow-indigo-100/50 border border-white/20"
+        className="w-full max-w-md rounded-2xl bg-white/80 backdrop-blur-xl p-8 shadow-xl shadow-green-100/50 border border-white/20"
       >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-600">
             Welcome Back
           </h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -76,7 +76,7 @@ const Login = () => {
 
           <Button
             type="submit"
-            className="w-full h-11 text-base mt-2"
+            className="w-full h-11 text-base mt-2 bg-green-600 hover:bg-green-700 text-white"
             isLoading={login.isPending}
           >
             Sign in
@@ -85,7 +85,7 @@ const Login = () => {
 
         <p className="mt-8 text-center text-sm text-gray-500">
           Don&apos;t have an account?{" "}
-          <Link to={ROUTES.REGISTER} className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
+          <Link to={ROUTES.REGISTER} className="font-medium text-green-600 hover:text-green-500 transition-colors">
             Create account
           </Link>
         </p>

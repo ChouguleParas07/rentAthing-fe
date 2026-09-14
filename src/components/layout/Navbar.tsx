@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../routes/routes";
-import { CircleUser, UserRoundKey, Menu, X, Sparkles, UserRoundPen, LayoutDashboard, LogOut } from "lucide-react";
+import { CircleUser, UserRoundKey, Menu, X, Sparkles, UserRoundPen, LayoutDashboard, LogOut, Moon, Sun } from "lucide-react";
 
 import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import { logout } from "../../store/authSlice";
+import { authApi } from "../../api/auth";
+import { useTheme } from "../../providers/ThemeProvider";
 
 const navLinks = [
   { to: ROUTES.HOME, label: "Home" },
@@ -16,8 +18,14 @@ const Navbar = () => {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+    } catch (e) {
+      console.error(e);
+    }
     dispatch(logout());
     navigate(ROUTES.LOGIN);
   };
@@ -54,6 +62,10 @@ const Navbar = () => {
               <span className="absolute left-1/2 -bottom-0.5 h-2px w-0 -translate-x-1/2 bg-lime-500 transition-all duration-300 group-hover:w-full" />
             </Link>
           ))}
+
+          <button onClick={toggleTheme} className="text-green-700 hover:text-green-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-full p-1 transition-colors">
+            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
 
           {isAuthenticated ? (
             <>

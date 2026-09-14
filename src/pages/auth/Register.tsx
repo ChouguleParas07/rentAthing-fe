@@ -33,15 +33,15 @@ const Register = () => {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 py-10 bg-gradient-to-br from-purple-50 via-white to-indigo-50">
+    <div className="min-h-screen flex items-center justify-center p-4 py-10 bg-gradient-to-br from-green-50 via-white to-emerald-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-md rounded-3xl bg-white/80 backdrop-blur-xl p-8 shadow-2xl shadow-indigo-100/50 border border-white/40"
+        className="w-full max-w-md rounded-3xl bg-white/80 backdrop-blur-xl p-8 shadow-2xl shadow-green-100/50 border border-white/40"
       >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-600">
             Create account
           </h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -110,7 +110,7 @@ const Register = () => {
             </label>
             <select
               id="role"
-              className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 transition-shadow outline-none"
+              className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 transition-shadow outline-none"
               {...register("role")}
             >
               <option value="RENTER">Rent items</option>
@@ -133,7 +133,7 @@ const Register = () => {
 
           <Button
             type="submit"
-            className="w-full h-11 text-base mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-indigo-600/20 border-0"
+            className="w-full h-11 text-base mt-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg shadow-green-600/20 border-0"
             isLoading={registerUser.isPending}
           >
             Create account
@@ -142,7 +142,7 @@ const Register = () => {
 
         <p className="mt-8 text-center text-sm text-gray-500">
           Already have an account?{" "}
-          <Link to={ROUTES.LOGIN} className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
+          <Link to={ROUTES.LOGIN} className="font-medium text-green-600 hover:text-green-500 transition-colors">
             Sign in
           </Link>
         </p>

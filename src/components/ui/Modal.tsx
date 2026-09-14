@@ -45,19 +45,17 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
                 className
               )}
             >
-              {(title || onClose) && (
-                <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                  {title && (
-                    <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-                  )}
-                  <button
-                    onClick={onClose}
-                    className="p-2 ml-auto rounded-full hover:bg-gray-100 transition-colors text-gray-500"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                {title && (
+                  <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+                )}
+                <button
+                  onClick={onClose}
+                  className="p-2 ml-auto rounded-full hover:bg-gray-100 transition-colors text-gray-500"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
               <div className="p-6">{children}</div>
             </motion.div>
           </div>

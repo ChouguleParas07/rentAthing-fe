@@ -41,4 +41,13 @@ export const authApi = {
   me: () => api.get<AuthenticatedUser>("/auth/me").then((res) => res.data),
 
   logout: () => api.post("/auth/logout"),
+
+  verifyEmail: (payload: { email: string; code: string }) =>
+    api.post("/auth/verify-email", payload).then((res) => res.data),
+
+  forgotPassword: (payload: { email: string }) =>
+    api.post("/auth/forgot-password", payload).then((res) => res.data),
+
+  resetPassword: (payload: { email: string; code: string; new_password: string }) =>
+    api.post("/auth/reset-password", payload).then((res) => res.data),
 };
