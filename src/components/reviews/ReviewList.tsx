@@ -32,9 +32,9 @@ const ReviewList: React.FC<ReviewListProps> = ({ targetId }) => {
                     <Star key={i} className={`w-4 h-4 ${i < review.rating ? "fill-current" : "text-gray-200"}`} />
                   ))}
                 </div>
-                <span className="text-sm text-gray-500 font-medium">User {review.reviewer_id.substring(0, 8)}</span>
+                <span className="text-sm text-gray-500 font-medium">User {(review.author_id || review.reviewer_id || "").substring(0, 8)}</span>
                 <span className="text-sm text-gray-400 mx-1">•</span>
-                <span className="text-sm text-gray-400">{new Date(review.created_at).toLocaleDateString()}</span>
+                <span className="text-sm text-gray-400">{review.created_at ? new Date(review.created_at).toLocaleDateString() : ""}</span>
               </div>
               <p className="text-gray-700 leading-relaxed">{review.comment}</p>
             </div>

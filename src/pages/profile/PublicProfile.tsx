@@ -1,13 +1,18 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { itemsApi } from "@/api/items.api";
 import { reviewsApi } from "@/api/reviews.api";
+import { useUser } from "@/hooks/users/useUser";
+import { useProfile } from "@/hooks/auth/useProfile";
 import { Card, CardContent } from "@/components/ui/Card";
-import { User, Star, MapPin } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Star, MapPin, MessageCircle, ShieldCheck, CheckCircle2, Edit3 } from "lucide-react";
 
 export const PublicProfile = () => {
   const { id } = useParams<{ id: string }>();
+  const { data: currentUser } = useProfile();
+  const { data: userProfile } = useUser(id);
+
+  const isSelf = currentUser?.id === id;
 
   const { data: userItems, isLoading: itemsLoading } = useQuery({
     queryKey: ["items", "user", id],
@@ -21,33 +26,77 @@ export const PublicProfile = () => {
     enabled: !!id,
   });
 
+  const name = userProfile?.full_name || userProfile?.email || (id ? `User ${id.substring(0, 8)}` : "User Profile");
+  const avatarLetter = (name[0] || "U").toUpperCase();
+  const rating = userProfile?.avg_rating || 5.0;
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
 
         {/* Profile Info Sidebar */}
         <div className="col-span-1">
-          <Card className="bg-white border-0 shadow-sm sticky top-8">
+          <Card className="bg-white border-0 shadow-sm sticky top-8 rounded-3xl overflow-hidden">
             <CardContent className="p-8 text-center flex flex-col items-center">
-              <div className="w-32 h-32 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center mb-6">
-                <User className="w-16 h-16" />
+              {/* WhatsApp / Premium Style Avatar Circle */}
+              <div className="relative mb-4">
+                <div className="w-28 h-28 bg-gradient-to-tr from-green-600 to-emerald-400 text-white rounded-full flex items-center justify-center font-bold text-4xl shadow-lg border-4 border-white overflow-hidden">
+                  {userProfile?.avatar_url ? (
+                    <img src={userProfile.avatar_url} alt={name} className="w-full h-full object-cover" />
+                  ) : (
+                    avatarLetter
+                  )}
+                </div>
+                {userProfile?.is_verified && (
+                  <span className="absolute bottom-1 right-1 bg-white p-1 rounded-full text-green-600 shadow-md" title="Verified User">
+                    <CheckCircle2 className="w-6 h-6 fill-green-600 text-white" />
+                  </span>
+                )}
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">User {id?.substring(0, 8)}</h2>
-              <div className="flex items-center gap-2 text-amber-500 mb-4">
-                <Star className="w-5 h-5 fill-current" />
-                <span className="font-medium text-gray-900">
-                  4.8
+
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">{name}</h2>
+              {userProfile?.role && (
+                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-green-100 text-green-800 mb-3">
+                  {userProfile.role}
                 </span>
-                <span className="text-gray-500">({userReviews?.total || 0} reviews)</span>
+              )}
+
+              <div className="flex items-center gap-2 text-amber-500 mb-6">
+                <Star className="w-5 h-5 fill-current" />
+                <span className="font-semibold text-gray-900">{rating.toFixed(1)}</span>
+                <span className="text-gray-400 text-sm">({userReviews?.total || userProfile?.rating_count || 0} reviews)</span>
               </div>
-              <div className="w-full border-t border-gray-100 my-4 pt-4 text-left space-y-3">
+
+              {isSelf ? (
+                <Link
+                  to="/profile"
+                  className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-md mb-4"
+                >
+                  <Edit3 className="w-5 h-5" /> Edit Profile Settings
+                </Link>
+              ) : (
+                <Link
+                  to={`/messages?user_id=${id}`}
+                  className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-md shadow-green-600/20 mb-4"
+                >
+                  <MessageCircle className="w-5 h-5" /> Chat with {name.split(" ")[0]}
+                </Link>
+              )}
+
+              <div className="w-full border-t border-gray-100 pt-4 text-left space-y-3">
+                {userProfile?.city && (
+                  <p className="text-sm text-gray-600 flex justify-between">
+                    <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-gray-400" /> Location</span>
+                    <span className="font-medium text-gray-900">{userProfile.city}</span>
+                  </p>
+                )}
                 <p className="text-sm text-gray-600 flex justify-between">
-                  <span>Listings</span>
-                  <span className="font-medium text-gray-900">{userItems?.total || 0}</span>
+                  <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-gray-400" /> Trust Score</span>
+                  <span className="font-bold text-emerald-600">{userProfile?.trust_score ?? 100} / 100</span>
                 </p>
                 <p className="text-sm text-gray-600 flex justify-between">
-                  <span>Joined</span>
-                  <span className="font-medium text-gray-900">2026</span>
+                  <span>Active Listings</span>
+                  <span className="font-medium text-gray-900">{userItems?.total || 0}</span>
                 </p>
               </div>
             </CardContent>

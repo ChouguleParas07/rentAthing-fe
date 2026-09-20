@@ -3,6 +3,9 @@ import api from "./axios";
 export type Review = {
   id: string;
   item_id: string;
+  booking_id: string;
+  author_id: string;
+  target_user_id: string;
   reviewer_id: string;
   rating: number;
   comment: string;
@@ -11,6 +14,7 @@ export type Review = {
 
 export type ReviewListResponse = {
   items: Review[];
+  reviews?: Review[];
   total: number;
 };
 

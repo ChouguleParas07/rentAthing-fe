@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Calendar as CalendarIcon, MapPin, Star, User } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Calendar as CalendarIcon, MapPin, Star, User, MessageSquare } from "lucide-react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Calendar from "react-calendar";
@@ -14,13 +14,16 @@ import { useCreateBooking } from "@/hooks/bookings/useBookings";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useProfile } from "@/hooks/auth/useProfile";
 import { ROUTES } from "@/routes/routes";
 
 const ItemDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { data: currentUser } = useProfile();
   const { data: item, isLoading } = useItem(id!);
+
+  const isOwner = currentUser?.id === item?.owner_id;
   const { mutate: createBooking, isPending } = useCreateBooking();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
@@ -34,7 +37,8 @@ const ItemDetails = () => {
 
   const getTileClassName = ({ date, view }: any) => {
     if (view === 'month') {
-      const isBooked = bookingsData?.items.some((b) => {
+      const isBooked = bookingsData?.items?.some((b) => {
+        if (!b || !b.start_date || !b.end_date) return false;
         if (b.status === "CANCELLED" || b.status === "REJECTED") return false;
         const start = new Date(b.start_date);
         const end = new Date(b.end_date);
@@ -133,7 +137,7 @@ const ItemDetails = () => {
                 <div className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {item.location_text || "Location not specified"}</div>
                 <div className="flex items-center gap-1 text-amber-500">
                   <Star className="w-4 h-4 fill-current" />
-                  {item.rating_count > 0 ? `${item.avg_rating.toFixed(1)} (${item.rating_count} reviews)` : "No reviews"}
+                  {item.rating_count > 0 && item.avg_rating != null ? `${Number(item.avg_rating).toFixed(1)} (${item.rating_count} reviews)` : "No reviews"}
                 </div>
               </div>
 
@@ -162,14 +166,31 @@ const ItemDetails = () => {
                 </div>
               </div>
 
-              <Button
-                size="lg"
-                className="w-full text-lg h-14 bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-600/20"
-                onClick={() => setIsBookingModalOpen(true)}
-              >
-                <CalendarIcon className="w-5 h-5 mr-2" />
-                Request to Book
-              </Button>
+              {isOwner ? (
+                <div className="p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800 text-center font-semibold text-sm">
+                  This is your listing. You can manage bookings and requests in your Owner Dashboard.
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    size="lg"
+                    className="flex-1 text-lg h-14 bg-green-600 hover:bg-green-700 rounded-xl shadow-lg shadow-green-600/20"
+                    onClick={() => setIsBookingModalOpen(true)}
+                  >
+                    <CalendarIcon className="w-5 h-5 mr-2" />
+                    Request to Book
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-14 px-6 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl"
+                    onClick={() => navigate(`/messages?user_id=${item.owner_id}`)}
+                  >
+                    <MessageSquare className="w-5 h-5 mr-2 text-gray-500" />
+                    Message Owner
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -198,7 +219,7 @@ const ItemDetails = () => {
               </div>
             </div>
           </div>
-          s
+
           {/* Reviews Section */}
           <div className="p-8 md:p-12 lg:p-16 border-t border-gray-100 bg-gray-50/50">
             <ReviewList targetId={item.id} />
@@ -237,7 +258,7 @@ const ItemDetails = () => {
           <div className="bg-green-50 p-4 rounded-lg mt-4">
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-600">Daily Rate x {calculateDays()} days</span>
-              <span className="font-medium text-gray-900">${(item.daily_price * calculateDays()).toFixed(2)}</span>
+              <span className="font-medium text-gray-900">${(Number(item.daily_price || 0) * calculateDays()).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-600">Deposit</span>
@@ -245,7 +266,7 @@ const ItemDetails = () => {
             </div>
             <div className="flex justify-between text-base font-bold mt-2 pt-2 border-t border-green-200">
               <span className="text-gray-900">Total</span>
-              <span className="text-green-700">${(item.daily_price * calculateDays() + Number(item.security_deposit)).toFixed(2)}</span>
+              <span className="text-green-700">${(Number(item.daily_price || 0) * calculateDays() + Number(item.security_deposit || 0)).toFixed(2)}</span>
             </div>
           </div>
           <Button

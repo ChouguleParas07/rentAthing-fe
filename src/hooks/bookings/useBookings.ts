@@ -5,6 +5,7 @@ export const useBookings = (params?: { skip?: number; limit?: number; item_id?: 
   return useQuery({
     queryKey: ["bookings", params],
     queryFn: () => bookingsApi.list(params),
+    enabled: params !== undefined,
   });
 };
 

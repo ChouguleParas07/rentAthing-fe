@@ -34,15 +34,17 @@ export type ItemListResponse = {
 };
 
 export type CreateItemPayload = {
-  category_id: string;
+  category_id?: string | null;
   title: string;
-  description: string;
+  description?: string | null;
   daily_price: number;
   security_deposit: number;
   location_lat: number;
   location_lng: number;
-  location_text: string | null;
-  images: { url: string } | null;
+  location_text?: string | null;
+  available_from?: string | null;
+  available_until?: string | null;
+  images?: { url: string }[] | null;
 };
 
 export const itemsApi = {

@@ -26,6 +26,7 @@ export type AuthenticatedUser = {
   phone: string;
   city: string;
   full_name: string | null;
+  avatar_url?: string | null;
   role: string;
   is_active: boolean;
   is_verified: boolean;
@@ -39,6 +40,9 @@ export const authApi = {
     api.post<{ message: string; verification_code: string }>("/auth/register", payload).then((res) => res.data),
 
   me: () => api.get<AuthenticatedUser>("/auth/me").then((res) => res.data),
+
+  updateProfile: (payload: { full_name?: string; phone?: string; city?: string; avatar_url?: string }) =>
+    api.patch<AuthenticatedUser>("/auth/me", payload).then((res) => res.data),
 
   logout: () => api.post("/auth/logout"),
 

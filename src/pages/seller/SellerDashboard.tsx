@@ -88,7 +88,7 @@ const SellerDashboard: React.FC = () => {
       location_text: locationText,
       location_lat: 0, // Mock location for now
       location_lng: 0,
-      images: imageUrl ? { url: imageUrl } : null,
+      images: imageUrl ? [{ url: imageUrl }] : null,
     };
 
     try {

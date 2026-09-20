@@ -17,6 +17,12 @@ export type MessageListResponse = {
 export const chatApi = {
   getConversations: (params?: { other_user_id?: string; conversation_id?: string; skip?: number; limit?: number }) =>
     api.get<MessageListResponse>("/chat/conversations", { params }).then((res) => res.data),
+
+  sendMessage: (payload: { receiver_id: string; content: string; conversation_id?: string }) =>
+    api.post<Message>("/chat/messages", payload).then((res) => res.data),
+
+  clearConversation: (conversationId: string) =>
+    api.delete<{ message: string }>(`/chat/conversations/${conversationId}`).then((res) => res.data),
 };
 
 export class ChatWebSocket {

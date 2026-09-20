@@ -1,19 +1,24 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Package, CalendarRange, MessageCircle } from "lucide-react";
+import { Package, CalendarRange, MessageCircle, Plus, Trash2, ExternalLink } from "lucide-react";
 import { useProfile } from "@/hooks/auth/useProfile";
 import { useBookings } from "@/hooks/bookings/useBookings";
 import { useItems } from "@/hooks/items/useItems";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/routes/routes";
 import { BookingCard } from "@/components/booking/BookingCard";
+import { CreateItemModal } from "@/components/items/CreateItemModal";
+import { itemsApi } from "@/api/items.api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const { data: user, isLoading: isUserLoading } = useProfile();
   const [activeTab, setActiveTab] = useState<"bookings" | "items" | "messages">("bookings");
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-
+  const [isCreateItemModalOpen, setIsCreateItemModalOpen] = useState(false);
   const [itemsPage, setItemsPage] = useState(1);
   const itemsLimit = 9;
 
@@ -30,6 +35,17 @@ const Dashboard = () => {
   const { data: items, isLoading: isItemsLoading } = useItems(
     user ? { owner_id: user.id, limit: itemsLimit, skip: (itemsPage - 1) * itemsLimit } : undefined
   );
+
+  const deleteItemMutation = useMutation({
+    mutationFn: (id: string) => itemsApi.delete(id),
+    onSuccess: () => {
+      toast.success("Listing deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.detail || "Failed to delete listing");
+    },
+  });
 
   if (isUserLoading) {
     return <div className="p-8 text-center text-gray-500">Loading dashboard...</div>;
@@ -120,10 +136,11 @@ const Dashboard = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900">My Listings</h2>
-                <button onClick={() => {
-                  navigate(ROUTES.PRODUCTS)
-                }} className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700">
-                  Add New Item
+                <button
+                  onClick={() => setIsCreateItemModalOpen(true)}
+                  className="bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 shadow-md shadow-green-600/20 flex items-center transition-all"
+                >
+                  <Plus className="w-4 h-4 mr-1.5" /> List New Item
                 </button>
               </div>
               {isItemsLoading ? (
@@ -131,23 +148,49 @@ const Dashboard = () => {
               ) : items?.items?.length ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {items.items.map((item) => (
-                    <div key={item.id} className="rounded-xl border border-gray-200 overflow-hidden">
-                      <div className="aspect-video bg-gray-100 relative overflow-hidden">
-                        <img
-                          src={item.images?.[0]?.url || `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`}
-                          className="absolute inset-0 w-full h-full object-cover"
-                          alt={item.title}
-                          loading="lazy"
-                          decoding="async"
-                          onError={(e) => {
-                            e.currentTarget.src = `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`;
-                          }}
-                        />
-
+                    <div key={item.id} className="rounded-2xl border border-gray-200 overflow-hidden bg-white hover:shadow-md transition-all flex flex-col justify-between">
+                      <div>
+                        <div className="aspect-video bg-gray-100 relative overflow-hidden">
+                          <img
+                            src={item.images?.[0]?.url || `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            alt={item.title}
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => {
+                              e.currentTarget.src = `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`;
+                            }}
+                          />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-bold text-gray-900 line-clamp-1 text-base">{item.title}</h3>
+                          <div className="flex justify-between items-center mt-2">
+                            <p className="font-semibold text-green-700 text-sm">${item.daily_price}/day</p>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${item.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
+                              {item.is_active ? "Active" : "Inactive"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-gray-900 line-clamp-1">{item.title}</h3>
-                        <p className="text-sm text-gray-500 mt-1">${item.daily_price}/day</p>
+
+                      <div className="p-4 pt-0 border-t border-gray-100 flex justify-between items-center mt-2">
+                        <button
+                          onClick={() => navigate(`/items/${item.id}`)}
+                          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 mr-1" /> View Listing
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this listing?")) {
+                              deleteItemMutation.mutate(item.id);
+                            }
+                          }}
+                          className="text-xs text-red-500 hover:text-red-700 p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Listing"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -183,6 +226,11 @@ const Dashboard = () => {
 
         </div>
       </div>
+
+      <CreateItemModal
+        isOpen={isCreateItemModalOpen}
+        onClose={() => setIsCreateItemModalOpen(false)}
+      />
     </div>
   );
 };

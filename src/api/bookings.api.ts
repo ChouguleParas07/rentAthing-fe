@@ -1,11 +1,12 @@
 import api from "./axios";
 
-export type BookingStatus = "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "COMPLETED" | "CANCELLED";
+export type BookingStatus = "REQUESTED" | "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "COMPLETED" | "CANCELLED";
 
 export type Booking = {
   id: string;
   item_id: string;
   renter_id: string;
+  owner_id: string;
   start_date: string;
   end_date: string;
   total_price: number;
