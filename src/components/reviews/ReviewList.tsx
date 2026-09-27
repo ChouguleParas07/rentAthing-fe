@@ -2,10 +2,21 @@ import React from "react";
 import { Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { reviewsApi } from "@/api/reviews.api";
+import { useUser } from "@/hooks/users/useUser";
 
 interface ReviewListProps {
   targetId: string;
 }
+
+const ReviewerName = ({ userId }: { userId?: string }) => {
+  const { data: user } = useUser(userId);
+  if (!userId) return <span className="text-sm text-gray-500 font-medium">Unknown User</span>;
+  return (
+    <span className="text-sm text-gray-500 font-medium">
+      {user?.full_name || user?.email || `User ${userId.substring(0, 8)}`}
+    </span>
+  );
+};
 
 const ReviewList: React.FC<ReviewListProps> = ({ targetId }) => {
   const { data, isLoading } = useQuery({
@@ -32,7 +43,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ targetId }) => {
                     <Star key={i} className={`w-4 h-4 ${i < review.rating ? "fill-current" : "text-gray-200"}`} />
                   ))}
                 </div>
-                <span className="text-sm text-gray-500 font-medium">User {(review.author_id || review.reviewer_id || "").substring(0, 8)}</span>
+                <ReviewerName userId={review.author_id || review.reviewer_id} />
                 <span className="text-sm text-gray-400 mx-1">•</span>
                 <span className="text-sm text-gray-400">{review.created_at ? new Date(review.created_at).toLocaleDateString() : ""}</span>
               </div>

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/auth/useProfile";
+import { useUser } from "@/hooks/users/useUser";
 import { ROUTES } from "@/routes/routes";
 
 const ItemDetails = () => {
@@ -22,6 +23,7 @@ const ItemDetails = () => {
   const navigate = useNavigate();
   const { data: currentUser } = useProfile();
   const { data: item, isLoading } = useItem(id!);
+  const { data: owner } = useUser(item?.owner_id);
 
   const isOwner = currentUser?.id === item?.owner_id;
   const { mutate: createBooking, isPending } = useCreateBooking();
@@ -162,7 +164,7 @@ const ItemDetails = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 font-medium">Owned by</p>
-                  <p className="text-gray-900 font-semibold">User {item.owner_id.substring(0, 8)}</p>
+                  <p className="text-gray-900 font-semibold">{owner?.full_name || owner?.email || `User ${item.owner_id.substring(0, 8)}`}</p>
                 </div>
               </div>
 
