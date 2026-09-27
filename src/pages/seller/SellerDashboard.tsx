@@ -168,7 +168,7 @@ const SellerDashboard: React.FC = () => {
                       </div>
                     </td>
                     <td className="p-4 text-gray-600 dark:text-gray-400">{item.category?.name || 'N/A'}</td>
-                    <td className="p-4 text-gray-900 dark:text-white font-medium">${item.daily_price}</td>
+                    <td className="p-4 text-gray-900 dark:text-white font-medium">₹{item.daily_price}</td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => handleOpenModal(item)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -211,11 +211,11 @@ const SellerDashboard: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Daily Price ($)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Daily Price (₹)</label>
               <input required type="number" min="0" step="0.01" value={dailyPrice} onChange={(e) => setDailyPrice(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-indigo-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Security Deposit ($)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Security Deposit (₹)</label>
               <input required type="number" min="0" step="0.01" value={securityDeposit} onChange={(e) => setSecurityDeposit(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-indigo-500" />
             </div>
           </div>

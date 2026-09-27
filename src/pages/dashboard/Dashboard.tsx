@@ -1,237 +1,248 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Package, CalendarRange, MessageCircle, Plus, Trash2, ExternalLink } from "lucide-react";
+
+import { Calendar, Clock, CheckCircle2, XCircle, Plus, ChevronDown, Package, MessageCircle } from "lucide-react";
 import { useProfile } from "@/hooks/auth/useProfile";
 import { useBookings } from "@/hooks/bookings/useBookings";
-import { useItems } from "@/hooks/items/useItems";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/routes/routes";
 import { BookingCard } from "@/components/booking/BookingCard";
 import { CreateItemModal } from "@/components/items/CreateItemModal";
-import { itemsApi } from "@/api/items.api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useItems } from "@/hooks/items/useItems";
+import { ItemCard } from "@/components/items/ItemCard";
 
 const Dashboard = () => {
   const { data: user, isLoading: isUserLoading } = useProfile();
   const [activeTab, setActiveTab] = useState<"bookings" | "items" | "messages">("bookings");
+  const [filter, setFilter] = useState("all");
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const [isCreateItemModalOpen, setIsCreateItemModalOpen] = useState(false);
-  const [itemsPage, setItemsPage] = useState(1);
-  const itemsLimit = 9;
-
-  const [bookingTab, setBookingTab] = useState<"renting" | "renting_out">("renting");
 
   const { data: renterBookings, isLoading: isRenterBookingsLoading } = useBookings(
-    user && bookingTab === "renting" ? { renter_id: user.id } : undefined
+    user ? { renter_id: user.id } : undefined
   );
 
-  const { data: ownerBookings, isLoading: isOwnerBookingsLoading } = useBookings(
-    user && bookingTab === "renting_out" ? { owner_id: user.id } : undefined
+  const { data: ownerBookings } = useBookings(
+    user ? { owner_id: user.id } : undefined
   );
 
-  const { data: items, isLoading: isItemsLoading } = useItems(
-    user ? { owner_id: user.id, limit: itemsLimit, skip: (itemsPage - 1) * itemsLimit } : undefined
+  const { data: userItems, isLoading: isUserItemsLoading } = useItems(
+    user ? { owner_id: user.id, limit: 100 } : undefined
   );
 
-  const deleteItemMutation = useMutation({
-    mutationFn: (id: string) => itemsApi.delete(id),
-    onSuccess: () => {
-      toast.success("Listing deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["items"] });
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.detail || "Failed to delete listing");
-    },
+  if (isUserLoading) return <div className="p-8 text-center text-gray-500">Loading dashboard...</div>;
+  if (!user) return <div className="p-8 text-center text-gray-500">Please sign in.</div>;
+
+  const allBookings = [...(renterBookings?.items || []), ...(ownerBookings?.items || [])];
+
+  // Dedup and sort logic for demo purposes
+  const uniqueBookings = Array.from(new Map(allBookings.map(item => [item.id, item])).values())
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const ongoingCount = uniqueBookings.filter(b => ["REQUESTED", "PENDING", "APPROVED", "ACTIVE"].includes(b.status)).length;
+  const completedCount = uniqueBookings.filter(b => b.status === "COMPLETED").length;
+  const cancelledCount = uniqueBookings.filter(b => b.status === "CANCELLED" || b.status === "REJECTED").length;
+
+  const filteredBookings = uniqueBookings.filter(b => {
+    if (filter === "ongoing") return ["REQUESTED", "PENDING", "APPROVED", "ACTIVE"].includes(b.status);
+    if (filter === "completed") return b.status === "COMPLETED";
+    if (filter === "cancelled") return ["CANCELLED", "REJECTED"].includes(b.status);
+    return true;
   });
 
-  if (isUserLoading) {
-    return <div className="p-8 text-center text-gray-500">Loading dashboard...</div>;
-  }
-
-  if (!user) {
-    return <div className="p-8 text-center text-gray-500">Please sign in.</div>;
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-12">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user.full_name || user.email}
-          </h1>
-          <p className="text-gray-500 mt-2">Manage your rentals, listings, and messages here.</p>
+    <div className="min-h-screen bg-[#F8FAF9] px-6 py-10 md:px-12 pb-20 overflow-x-hidden relative z-0">
+
+      {/* High-Fidelity Background Texture & Organic Shapes (Full Page) */}
+      <div className="absolute inset-0 overflow-hidden -z-20 pointer-events-none">
+        {/* SVG Noise Texture - Covers everything */}
+        <div
+          className="absolute inset-0 opacity-[0.35] mix-blend-overlay"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+        />
+        {/* Soft Organic Gradients - Positioned at top */}
+        <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[800px] bg-gradient-to-br from-green-200/40 to-transparent rounded-[100%] blur-3xl transform -rotate-12" />
+        <div className="absolute top-[-5%] right-[-5%] w-[60%] h-[700px] bg-gradient-to-bl from-emerald-200/50 via-lime-100/20 to-transparent rounded-[100%] blur-3xl" />
+        <div className="absolute top-[10%] left-[30%] w-[40%] h-[600px] bg-lime-200/20 rounded-full blur-3xl mix-blend-multiply" />
+      </div>
+
+
+      <div className="max-w-7xl mx-auto">
+
+        {/* Top Hero Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-8 mb-12 relative">
+          <div className="z-10">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-[#1A2530] tracking-tight">
+              Welcome back, <span className="text-[#00A843]">{user.full_name || user.email}</span>
+            </h1>
+            <p className="text-gray-500 mt-2 text-lg">Manage your rentals, listings, and messages here.</p>
+
+            <div className="flex flex-wrap gap-3 mt-8">
+              <button
+                onClick={() => setActiveTab("bookings")}
+                className={`flex items-center px-6 py-3 rounded-full text-sm font-bold transition-all shadow-sm ${activeTab === "bookings" ? "bg-[#00A843] text-white shadow-md" : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"}`}
+              >
+                <Calendar className="w-4 h-4 mr-2" /> My Bookings
+              </button>
+              <button
+                onClick={() => setActiveTab("items")}
+                className={`flex items-center px-6 py-3 rounded-full text-sm font-bold transition-all shadow-sm ${activeTab === "items" ? "bg-[#00A843] text-white shadow-md" : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"}`}
+              >
+                <Package className="w-4 h-4 mr-2" /> My Listings
+              </button>
+              <button
+                onClick={() => navigate(ROUTES.MESSAGES)}
+                className={`flex items-center px-6 py-3 rounded-full text-sm font-bold transition-all shadow-sm bg-white text-gray-700 border border-gray-200 hover:bg-gray-50`}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" /> Messages
+                <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-0.5 text-[10px]">3</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="hidden lg:flex items-center right-0 top-0 absolute">
+            <div className="text-right mr-6 -mt-10 font-bold text-gray-600 italic rotate-[-6deg] leading-tight text-xl tracking-wide opacity-80" style={{ fontFamily: 'Kalam, cursive' }}>
+              Rent<br />Use<br />Return<br />Repeat
+              <svg className="absolute -bottom-8 -left-4 w-12 h-12 text-gray-600 rotate-[20deg]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </div>
+            <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400" alt="Box illustration placeholder" className="w-72 h-48 object-cover rounded-3xl shadow-xl rotate-3 mask-image-blob opacity-90 mix-blend-multiply" style={{ clipPath: 'polygon(0 10%, 100% 0, 90% 100%, 10% 90%)' }} />
+          </div>
         </div>
 
-        <div className="flex space-x-1 bg-white p-1 rounded-xl shadow-sm border border-gray-100 w-fit">
-          <button
-            onClick={() => setActiveTab("bookings")}
-            className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "bookings" ? "bg-green-100 text-green-700" : "text-gray-600 hover:bg-gray-50"
-              }`}
-          >
-            <CalendarRange className="w-4 h-4 mr-2" /> My Bookings
-          </button>
-          <button
-            onClick={() => setActiveTab("items")}
-            className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "items" ? "bg-green-100 text-green-700" : "text-gray-600 hover:bg-gray-50"
-              }`}
-          >
-            <Package className="w-4 h-4 mr-2" /> My Listings
-          </button>
-          <button
-            onClick={() => navigate(ROUTES.MESSAGES)}
-            className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "messages" ? "bg-green-100 text-green-700" : "text-gray-600 hover:bg-gray-50"
-              }`}
-          >
-            <MessageCircle className="w-4 h-4 mr-2" /> Messages
-          </button>
-        </div>
-
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 min-h-[400px]">
-          {activeTab === "bookings" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                <h2 className="text-xl font-bold text-gray-900">My Bookings</h2>
-                <div className="flex bg-gray-100 p-1 rounded-lg">
-                  <button onClick={() => setBookingTab("renting")} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${bookingTab === "renting" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"}`}>
-                    Renting
-                  </button>
-                  <button onClick={() => setBookingTab("renting_out")} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${bookingTab === "renting_out" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"}`}>
-                    Renting Out
-                  </button>
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 mb-12">
+          {/* Stats Pills - Takes 8 cols */}
+          <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-emerald-50 rounded-[2rem] p-5 flex flex-col justify-center items-center gap-2 border border-emerald-100/50 shadow-sm transition-transform hover:scale-105">
+              <div className="flex items-center gap-3 w-full justify-center">
+                <div className="p-2.5 bg-white rounded-2xl shadow-sm text-emerald-600 border border-emerald-50">
+                  <Calendar className="w-6 h-6" />
                 </div>
+                <p className="text-3xl font-black text-gray-900">{uniqueBookings.length}</p>
+              </div>
+              <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Total Bookings</p>
+            </div>
+
+            <div className="bg-blue-50 rounded-[2rem] p-5 flex flex-col justify-center items-center gap-2 border border-blue-100/50 shadow-sm transition-transform hover:scale-105">
+              <div className="flex items-center gap-3 w-full justify-center">
+                <div className="p-2.5 bg-white rounded-2xl shadow-sm text-blue-600 border border-blue-50">
+                  <Clock className="w-6 h-6" />
+                </div>
+                <p className="text-3xl font-black text-gray-900">{ongoingCount}</p>
+              </div>
+              <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Ongoing Rentals</p>
+            </div>
+
+            <div className="bg-amber-50 rounded-[2rem] p-5 flex flex-col justify-center items-center gap-2 border border-amber-100/50 shadow-sm transition-transform hover:scale-105">
+              <div className="flex items-center gap-3 w-full justify-center">
+                <div className="p-2.5 bg-white rounded-2xl shadow-sm text-amber-600 border border-amber-50">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <p className="text-3xl font-black text-gray-900">{completedCount}</p>
+              </div>
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Completed</p>
+            </div>
+
+            <div className="bg-rose-50 rounded-[2rem] p-5 flex flex-col justify-center items-center gap-2 border border-rose-100/50 shadow-sm transition-transform hover:scale-105">
+              <div className="flex items-center gap-3 w-full justify-center">
+                <div className="p-2.5 bg-white rounded-2xl shadow-sm text-rose-600 border border-rose-50">
+                  <XCircle className="w-6 h-6" />
+                </div>
+                <p className="text-3xl font-black text-gray-900">{cancelledCount}</p>
+              </div>
+              <p className="text-xs font-semibold text-rose-700 uppercase tracking-wider">Cancelled</p>
+            </div>
+          </div>
+
+          {/* Call to Action Card - Takes 4 cols */}
+          <div className="lg:col-span-4 bg-gradient-to-br from-green-100 to-emerald-50 rounded-[2rem] p-6 shadow-sm border border-emerald-100 flex items-center relative overflow-hidden">
+            <div className="z-10 w-2/3">
+              <h3 className="text-lg font-extrabold text-[#1A2530] leading-tight">Turn your unused items into income</h3>
+              <p className="text-xs text-gray-600 mt-1 mb-4">List your items and start earning today!</p>
+              <button onClick={() => setIsCreateItemModalOpen(true)} className="bg-[#00A843] hover:bg-[#009038] text-white text-xs font-bold px-4 py-2 rounded-full shadow-md transition-colors flex items-center">
+                Create a Listing <Plus className="w-3 h-3 ml-1" />
+              </button>
+            </div>
+            <div className="absolute right-[-20px] bottom-[-20px] w-32 h-32 opacity-80 mix-blend-multiply">
+              <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200&auto=format&fit=crop&q=60" alt="Box" className="w-full h-full object-cover rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 min-h-[500px]">
+          {activeTab === "bookings" && (
+            <>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                  <h2 className="text-2xl font-extrabold text-[#1A2530]">My Bookings</h2>
+                  <p className="text-gray-500 text-sm">Track and manage all your rental activities</p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => setFilter("all")} className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-colors ${filter === 'all' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>All ({uniqueBookings.length})</button>
+                  <button onClick={() => setFilter("ongoing")} className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-colors ${filter === 'ongoing' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>Ongoing ({ongoingCount})</button>
+                  <button onClick={() => setFilter("completed")} className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-colors ${filter === 'completed' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>Completed ({completedCount})</button>
+                  <button onClick={() => setFilter("cancelled")} className={`px-4 py-1.5 rounded-full text-xs font-bold border transition-colors ${filter === 'cancelled' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>Cancelled ({cancelledCount})</button>
+                </div>
+
+                <button className="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M6 12h12m-9 6h6" /></svg>
+                  Latest First <ChevronDown className="w-3.5 h-3.5" />
+                </button>
               </div>
 
-              {bookingTab === "renting" ? (
-                isRenterBookingsLoading ? (
-                  <p className="text-gray-500 text-center py-12">Loading bookings...</p>
-                ) : renterBookings?.items?.length ? (
-                  <div className="space-y-4">
-                    {renterBookings.items.map((booking) => (
-                      <BookingCard key={booking.id} booking={booking} isOwner={false} />
-                    ))}
-                  </div>
+              <div className="space-y-4">
+                {isRenterBookingsLoading ? (
+                  <div className="text-center py-10">Loading bookings...</div>
+                ) : filteredBookings.length === 0 ? (
+                  <div className="text-center py-10 text-gray-500">No bookings found.</div>
                 ) : (
-                  <div className="text-center py-12 text-gray-500">You have no active rentals.</div>
-                )
-              ) : (
-                isOwnerBookingsLoading ? (
-                  <p className="text-gray-500 text-center py-12">Loading bookings...</p>
-                ) : ownerBookings?.items?.length ? (
-                  <div className="space-y-4">
-                    {ownerBookings.items.map((booking) => (
-                      <BookingCard key={booking.id} booking={booking} isOwner={true} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-gray-500">No one has booked your items yet.</div>
-                )
-              )}
-            </motion.div>
+                  filteredBookings.map(booking => (
+                    <BookingCard key={booking.id} booking={booking} isOwner={booking.owner_id === user.id} />
+                  ))
+                )}
+              </div>
+            </>
           )}
 
           {activeTab === "items" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900">My Listings</h2>
+            <>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                  <h2 className="text-2xl font-extrabold text-[#1A2530]">My Listings</h2>
+                  <p className="text-gray-500 text-sm">Manage the items you are currently renting out</p>
+                </div>
                 <button
                   onClick={() => setIsCreateItemModalOpen(true)}
-                  className="bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 shadow-md shadow-green-600/20 flex items-center transition-all"
+                  className="bg-[#00A843] hover:bg-[#009038] text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-md transition-colors flex items-center"
                 >
-                  <Plus className="w-4 h-4 mr-1.5" /> List New Item
+                  Create a Listing <Plus className="w-4 h-4 ml-1.5" />
                 </button>
               </div>
-              {isItemsLoading ? (
-                <p className="text-gray-500">Loading listings...</p>
-              ) : items?.items?.length ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {items.items.map((item) => (
-                    <div key={item.id} className="rounded-2xl border border-gray-200 overflow-hidden bg-white hover:shadow-md transition-all flex flex-col justify-between">
-                      <div>
-                        <div className="aspect-video bg-gray-100 relative overflow-hidden">
-                          <img
-                            src={item.images?.[0]?.url || `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`}
-                            className="absolute inset-0 w-full h-full object-cover"
-                            alt={item.title}
-                            loading="lazy"
-                            decoding="async"
-                            onError={(e) => {
-                              e.currentTarget.src = `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`;
-                            }}
-                          />
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-bold text-gray-900 line-clamp-1 text-base">{item.title}</h3>
-                          <div className="flex justify-between items-center mt-2">
-                            <p className="font-semibold text-green-700 text-sm">${item.daily_price}/day</p>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${item.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
-                              {item.is_active ? "Active" : "Inactive"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
 
-                      <div className="p-4 pt-0 border-t border-gray-100 flex justify-between items-center mt-2">
-                        <button
-                          onClick={() => navigate(`/items/${item.id}`)}
-                          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5 mr-1" /> View Listing
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (window.confirm("Are you sure you want to delete this listing?")) {
-                              deleteItemMutation.mutate(item.id);
-                            }
-                          }}
-                          className="text-xs text-red-500 hover:text-red-700 p-1.5 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete Listing"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+              {isUserItemsLoading ? (
+                <div className="text-center py-10">Loading items...</div>
+              ) : !userItems?.items || userItems.items.length === 0 ? (
+                <div className="text-center py-16 text-gray-500 bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
+                  <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="font-semibold text-gray-600">No items listed yet.</p>
+                  <p className="text-sm">Turn your unused stuff into extra income!</p>
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-500">You haven't listed any items yet.</div>
-              )}
-
-              {/* Items Pagination */}
-              {!isItemsLoading && items?.total && items.total > itemsLimit && (
-                <div className="mt-8 flex justify-center items-center gap-4">
-                  <button
-                    disabled={itemsPage === 1}
-                    onClick={() => setItemsPage((p) => Math.max(1, p - 1))}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                  >
-                    Previous
-                  </button>
-                  <span className="text-sm text-gray-600">
-                    Page {itemsPage} of {Math.ceil(items.total / itemsLimit)}
-                  </span>
-                  <button
-                    disabled={itemsPage >= Math.ceil(items.total / itemsLimit)}
-                    onClick={() => setItemsPage((p) => p + 1)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                  >
-                    Next
-                  </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {userItems.items.map(item => (
+                    <ItemCard key={item.id} item={item} />
+                  ))}
                 </div>
               )}
-            </motion.div>
+            </>
           )}
-
         </div>
       </div>
 
-      <CreateItemModal
-        isOpen={isCreateItemModalOpen}
-        onClose={() => setIsCreateItemModalOpen(false)}
-      />
-    </div>
+      <CreateItemModal isOpen={isCreateItemModalOpen} onClose={() => setIsCreateItemModalOpen(false)} />
+    </div >
   );
 };
 

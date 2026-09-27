@@ -31,8 +31,8 @@ export const PublicProfile = () => {
   const rating = userProfile?.avg_rating || 5.0;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div className="min-h-screen bg-[#F8FAF9] py-12 px-4 sm:px-6 lg:px-8 pb-20">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
 
         {/* Profile Info Sidebar */}
         <div className="col-span-1">
@@ -54,9 +54,9 @@ export const PublicProfile = () => {
                 )}
               </div>
 
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">{name}</h2>
+              <h2 className="text-3xl font-extrabold text-[#1A2530] mb-1">{name}</h2>
               {userProfile?.role && (
-                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-green-100 text-green-800 mb-3">
+                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase bg-[#00A843]/10 text-[#00A843] mb-3">
                   {userProfile.role}
                 </span>
               )}
@@ -77,7 +77,7 @@ export const PublicProfile = () => {
               ) : (
                 <Link
                   to={`/messages?user_id=${id}`}
-                  className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-md shadow-green-600/20 mb-4"
+                  className="w-full py-3 bg-[#00A843] hover:bg-[#009038] text-white font-bold rounded-full flex items-center justify-center gap-2 transition-colors shadow-md shadow-[#00A843]/20 mb-4"
                 >
                   <MessageCircle className="w-5 h-5" /> Chat with {name.split(" ")[0]}
                 </Link>
@@ -92,7 +92,7 @@ export const PublicProfile = () => {
                 )}
                 <p className="text-sm text-gray-600 flex justify-between">
                   <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-gray-400" /> Trust Score</span>
-                  <span className="font-bold text-emerald-600">{userProfile?.trust_score ?? 100} / 100</span>
+                  <span className="font-bold text-[#00A843]">{userProfile?.trust_score ?? 100} / 100</span>
                 </p>
                 <p className="text-sm text-gray-600 flex justify-between">
                   <span>Active Listings</span>
@@ -107,7 +107,7 @@ export const PublicProfile = () => {
         <div className="col-span-1 md:col-span-2 space-y-8">
 
           <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Listings by User {id?.substring(0, 4)}</h3>
+            <h3 className="text-2xl font-extrabold text-[#1A2530] mb-6">Listings by {name.split(" ")[0]}</h3>
             {itemsLoading ? (
               <p className="text-gray-500">Loading items...</p>
             ) : userItems?.items?.length ? (
@@ -115,7 +115,7 @@ export const PublicProfile = () => {
                 {userItems.items.map((item) => (
                   <Link to={`/items/${item.id}`} key={item.id} className="block group">
                     <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="aspect-video relative overflow-hidden bg-gray-100">
+                      <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
                         <img
                           src={item.images?.[0]?.url || `https://placehold.co/400x300/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`}
                           alt={item.title}
@@ -123,10 +123,10 @@ export const PublicProfile = () => {
                         />
                       </div>
                       <CardContent className="p-4">
-                        <h4 className="font-semibold text-gray-900 line-clamp-1">{item.title}</h4>
+                        <h4 className="font-extrabold text-gray-900 line-clamp-1">{item.title}</h4>
                         <div className="flex justify-between items-center mt-2">
                           <p className="text-sm text-gray-500"><MapPin className="w-3 h-3 inline mr-1" />{item.location_text}</p>
-                          <p className="font-bold text-green-700">${item.daily_price}/day</p>
+                          <p className="font-extrabold text-[#00A843]">₹{item.daily_price}/day</p>
                         </div>
                       </CardContent>
                     </Card>

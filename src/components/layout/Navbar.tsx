@@ -51,47 +51,47 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex gap-8 items-center">
+        <div className="hidden md:flex gap-6 items-center">
           {navLinks.map((item) => (
             <Link
               key={item.label}
               to={item.to}
-              className="group relative py-1 text-green-700 font-extrabold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-md"
+              className="group relative py-1.5 px-1 text-sm font-semibold text-gray-600 hover:text-green-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-md"
             >
               {item.label}
-              <span className="absolute left-1/2 -bottom-0.5 h-2px w-0 -translate-x-1/2 bg-lime-500 transition-all duration-300 group-hover:w-full" />
+              <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-green-600 transition-all duration-300 group-hover:w-full rounded-full" />
             </Link>
           ))}
 
-          <button onClick={toggleTheme} className="text-green-700 hover:text-green-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-full p-1 transition-colors">
-            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          <button onClick={toggleTheme} className="text-gray-400 hover:text-amber-500 bg-gray-50 hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-full p-2 transition-all">
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
           {isAuthenticated ? (
             <>
               <Link
                 to={ROUTES.DASHBOARD}
-                className="group relative py-1 text-green-700 font-extrabold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-md flex items-center gap-1"
+                className="group relative py-1.5 px-1 text-sm font-semibold text-gray-600 hover:text-green-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-md flex items-center gap-1.5"
               >
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
-                <span className="absolute left-1/2 -bottom-0.5 h-2px w-0 -translate-x-1/2 bg-lime-500 transition-all duration-300 group-hover:w-full" />
+                <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-green-600 transition-all duration-300 group-hover:w-full rounded-full" />
               </Link>
               <Link
                 to={ROUTES.PROFILE}
-                className="group relative py-1 text-green-700 font-extrabold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-md"
+                className="group relative py-1.5 px-1 text-gray-500 hover:text-green-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-md"
               >
-                <div className=" flex">
-                  <UserRoundPen strokeWidth={3} />
+                <div className="flex">
+                  <UserRoundPen size={20} strokeWidth={2} />
                 </div>
               </Link>
               <button
                 onClick={handleLogout}
                 className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-full"
               >
-                <div className="group relative overflow-hidden bg-gray-100 hover:bg-red-50 px-4 py-1.5 text-gray-700 hover:text-red-600 flex gap-1 font-bold font-mono items-center rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0">
-                  <LogOut className="w-4 h-4 relative" />
-                  <span className="relative">Logout</span>
+                <div className="group relative overflow-hidden bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 px-4 py-1.5 text-sm text-gray-600 hover:text-red-600 flex gap-1.5 font-semibold items-center rounded-full transition-all duration-300 hover:shadow-sm active:scale-95">
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
                 </div>
               </button>
             </>

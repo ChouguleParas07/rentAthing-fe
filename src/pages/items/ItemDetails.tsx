@@ -148,11 +148,11 @@ const ItemDetails = () => {
               <div className="bg-gray-50 rounded-2xl p-6 mb-8 border border-gray-100">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-500 font-medium">Daily Rate</span>
-                  <span className="text-3xl font-bold text-gray-900">${item.daily_price}</span>
+                  <span className="text-3xl font-bold text-gray-900">₹{item.daily_price}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Security Deposit</span>
-                  <span className="text-gray-700 font-medium">${item.security_deposit}</span>
+                  <span className="text-gray-700 font-medium">₹{item.security_deposit}</span>
                 </div>
               </div>
 
@@ -258,15 +258,15 @@ const ItemDetails = () => {
           <div className="bg-green-50 p-4 rounded-lg mt-4">
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-600">Daily Rate x {calculateDays()} days</span>
-              <span className="font-medium text-gray-900">${(Number(item.daily_price || 0) * calculateDays()).toFixed(2)}</span>
+              <span className="font-medium text-gray-900">₹{(Number(item.daily_price || 0) * calculateDays()).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-600">Deposit</span>
-              <span className="font-medium text-gray-900">${item.security_deposit}</span>
+              <span className="font-medium text-gray-900">₹{item.security_deposit}</span>
             </div>
             <div className="flex justify-between text-base font-bold mt-2 pt-2 border-t border-green-200">
               <span className="text-gray-900">Total</span>
-              <span className="text-green-700">${(Number(item.daily_price || 0) * calculateDays() + Number(item.security_deposit || 0)).toFixed(2)}</span>
+              <span className="text-green-700">₹{(Number(item.daily_price || 0) * calculateDays() + Number(item.security_deposit || 0)).toFixed(2)}</span>
             </div>
           </div>
           <Button
