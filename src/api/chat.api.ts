@@ -1,6 +1,7 @@
 import api from "./axios";
 
 export type Message = {
+  type?: "message";
   id: string;
   sender_id: string;
   receiver_id: string;
@@ -9,8 +10,11 @@ export type Message = {
   created_at: string;
 };
 
+export type ChatEvent = Message | { type: "typing"; sender_id: string; is_typing: boolean };
+
 export type MessageListResponse = {
-  items: Message[];
+  items?: Message[];
+  messages?: Message[];
   total: number;
 };
 
@@ -29,7 +33,7 @@ export class ChatWebSocket {
   private ws: WebSocket | null = null;
   private token: string;
   private conversationId: string;
-  public onMessage?: (msg: Message) => void;
+  public onMessage?: (msg: ChatEvent) => void;
   public onError?: (err: Event) => void;
   public onClose?: (ev: CloseEvent) => void;
 
@@ -39,7 +43,9 @@ export class ChatWebSocket {
   }
 
   connect() {
-    const wsUrl = `ws://localhost:8000/chat/ws/${this.conversationId}`;
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+    const wsBase = baseUrl.replace(/^http/, "ws");
+    const wsUrl = `${wsBase}/chat/ws/${this.conversationId}`;
     this.ws = new WebSocket(wsUrl, [this.token]);
 
     this.ws.onmessage = (event) => {
@@ -48,7 +54,7 @@ export class ChatWebSocket {
         console.error("WS Error from server:", data.error);
         return;
       }
-      this.onMessage?.(data as Message);
+      this.onMessage?.(data as ChatEvent);
     };
 
     this.ws.onerror = (err) => {
@@ -63,7 +69,13 @@ export class ChatWebSocket {
 
   sendMessage(receiverId: string, content: string) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({ receiver_id: receiverId, content }));
+      this.ws.send(JSON.stringify({ type: "message", receiver_id: receiverId, content }));
+    }
+  }
+
+  sendTyping(isTyping: boolean) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({ type: "typing", is_typing: isTyping }));
     }
   }
 

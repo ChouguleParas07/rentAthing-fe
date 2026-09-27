@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import type { Booking, BookingStatus } from "@/api/bookings.api";
-import { escrowApi } from "@/api/escrow.api";
+
 import { useUpdateBookingStatus } from "@/hooks/bookings/useBookings";
 import { useItem } from "@/hooks/items/useItem";
-import { Button } from "@/components/ui/Button";
+
 import { CreateReviewModal } from "@/components/reviews/CreateReviewModal";
 import { ROUTES } from "@/routes/routes";
-import { MessageSquare, Calendar, CheckCircle, XCircle, Play, Shield, Star } from "lucide-react";
+import { MessageSquare, Calendar, MapPin, CheckCircle2, Star, Clock, XCircle, MoreVertical } from "lucide-react";
 
 interface BookingCardProps {
   booking: Booking;
@@ -17,38 +17,19 @@ interface BookingCardProps {
 }
 
 export const BookingCard: React.FC<BookingCardProps> = ({ booking, isOwner }) => {
-  const queryClient = useQueryClient();
+
   const navigate = useNavigate();
-  const { mutate: updateStatus, isPending: isUpdating } = useUpdateBookingStatus();
+  const { mutate: updateStatus } = useUpdateBookingStatus();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const { data: item } = useItem(booking.item_id);
-
-  const { data: escrow } = useQuery({
-    queryKey: ["escrow", booking.id],
-    queryFn: () => escrowApi.getByBookingId(booking.id),
-    enabled: booking.status !== "PENDING" && booking.status !== "REQUESTED" && booking.status !== "REJECTED" && booking.status !== "CANCELLED",
-  });
-
-  const settleMutation = useMutation({
-    mutationFn: (action: "RELEASE" | "REFUND") => escrowApi.settle(escrow!.id, action),
-    onSuccess: () => {
-      toast.success("Escrow settled successfully");
-      queryClient.invalidateQueries({ queryKey: ["escrow", booking.id] });
-    },
-    onError: () => toast.error("Failed to settle escrow"),
-  });
 
   const handleStatusChange = (newStatus: BookingStatus) => {
     updateStatus(
       { id: booking.id, status: newStatus },
       {
-        onSuccess: () => {
-          toast.success(`Booking ${newStatus.toLowerCase()}!`);
-        },
-        onError: (err: any) => {
-          toast.error(err.response?.data?.detail || "Failed to update status");
-        }
+        onSuccess: () => toast.success(`Booking ${newStatus.toLowerCase()}!`),
+        onError: (err: any) => toast.error(err.response?.data?.detail || "Failed to update status")
       }
     );
   };
@@ -58,188 +39,167 @@ export const BookingCard: React.FC<BookingCardProps> = ({ booking, isOwner }) =>
     navigate(`${ROUTES.MESSAGES}?user_id=${targetUserId}`);
   };
 
-  const getStatusBadgeClass = (status: BookingStatus) => {
-    switch (status) {
-      case "REQUESTED":
-      case "PENDING":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      case "APPROVED":
-        return "bg-blue-50 text-blue-700 border-blue-200";
-      case "ACTIVE":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      case "COMPLETED":
-        return "bg-purple-50 text-purple-700 border-purple-200";
-      case "REJECTED":
-      case "CANCELLED":
-        return "bg-red-50 text-red-700 border-red-200";
-      default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
+  // Status mapping for progress bar
+  const statusLevels = {
+    REQUESTED: 1, PENDING: 1,
+    APPROVED: 2,
+    ACTIVE: 3,
+    COMPLETED: 4,
+    CANCELLED: -1, REJECTED: -1
+  };
+  const level = statusLevels[booking.status] || 0;
+
+  const isCancelled = level === -1;
+
+  const renderProgressStep = (stepName: string, stepLevel: number) => {
+    const isCompleted = level >= stepLevel && !isCancelled;
+
+    const isFailed = isCancelled && stepLevel === 2; // For visual sake, show cancel at step 2
+
+    let icon = <div className="w-4 h-4 rounded-full border-2 border-gray-300 bg-white z-10" />;
+    let textClass = "text-gray-400";
+
+    if (isCompleted) {
+      icon = <CheckCircle2 className="w-5 h-5 text-emerald-600 bg-white z-10 rounded-full" />;
+      textClass = "text-emerald-600";
+    } else if (isFailed && stepName === "Cancelled") {
+      icon = <XCircle className="w-5 h-5 text-red-600 bg-white z-10 rounded-full fill-red-100" />;
+      textClass = "text-red-600";
     }
+
+    return (
+      <div className="flex flex-col items-center gap-1 z-10 bg-white px-2">
+        {icon}
+        <span className={`text-[10px] font-bold ${textClass}`}>{stepName}</span>
+      </div>
+    );
   };
 
   return (
-    <div className="p-5 rounded-2xl border border-gray-200 bg-white flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex gap-4 items-start">
-        {/* Item Thumbnail */}
-        <div className="w-20 h-20 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-100">
+    <div className="p-5 rounded-3xl border border-gray-100 bg-white shadow-sm flex flex-col md:flex-row gap-6 mb-4 items-center">
+      {/* Left section: Item details */}
+      <div className="flex gap-4 w-full md:w-[35%] flex-shrink-0">
+        <div className="w-24 h-24 rounded-2xl bg-gray-100 overflow-hidden flex-shrink-0">
           <img
             src={item?.images?.[0]?.url || `https://placehold.co/200x200/e2e8f0/1e293b?text=${encodeURIComponent(item?.title || "Item")}`}
             alt={item?.title || "Item"}
             className="w-full h-full object-cover"
           />
         </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start gap-2">
-            <div>
-              <h4 className="font-bold text-gray-900 text-lg line-clamp-1">{item?.title || `Booking #${booking.id.substring(0, 8)}`}</h4>
-              <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                {booking.start_date} → {booking.end_date}
-              </p>
-            </div>
-
-            <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${getStatusBadgeClass(booking.status)}`}>
-                {booking.status}
-              </span>
-              {escrow && (
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${escrow.status === "HELD" ? "bg-amber-100 text-amber-800" :
-                  escrow.status === "RELEASED" ? "bg-emerald-100 text-emerald-800" :
-                    "bg-gray-100 text-gray-800"
-                  }`}>
-                  <Shield className="w-3 h-3 inline mr-0.5" /> Escrow: {escrow.status}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between mt-3 text-sm">
-            <span className="font-bold text-gray-900 text-base">${booking.total_price} <span className="text-xs font-normal text-gray-500">total</span></span>
-            <span className="text-xs text-gray-500">
-              {isOwner ? `Renter: User ${booking.renter_id.substring(0, 8)}` : `Owner: User ${booking.owner_id?.substring(0, 8) || "Owner"}`}
+        <div className="flex flex-col justify-center">
+          <div className="flex items-center gap-2 mb-1">
+            <h4 className="font-extrabold text-[#1A2530] text-base line-clamp-1">{item?.title || `Booking #${booking.id.substring(0, 8)}`}</h4>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 capitalize">
+              {item?.category?.name || "Category"}
             </span>
           </div>
+          <p className="text-xs text-gray-500 flex items-center gap-1 mb-1">
+            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+            {booking.start_date} → {booking.end_date}
+          </p>
+          <p className="text-xs text-gray-500 flex items-center gap-1 mb-2">
+            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+            {item?.location_text || "Location"}
+          </p>
+          <span className="font-extrabold text-[#00A843] text-sm">₹{booking.total_price} <span className="text-[10px] font-normal text-gray-500">total</span></span>
         </div>
       </div>
 
-      {/* Decision & Lifecycle Action Buttons */}
-      <div className="flex flex-wrap items-center justify-between gap-2 mt-1 pt-3 border-t border-gray-100">
-        <div className="flex flex-wrap gap-2">
-          {/* OWNER DECISION: ACCEPT / REJECT incoming request */}
-          {isOwner && (booking.status === "PENDING" || booking.status === "REQUESTED") && (
-            <>
-              <Button
-                size="sm"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
-                isLoading={isUpdating}
-                onClick={() => handleStatusChange("APPROVED")}
-              >
-                <CheckCircle className="w-4 h-4 mr-1.5" /> Accept Request
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-red-600 border-red-200 hover:bg-red-50"
-                isLoading={isUpdating}
-                onClick={() => handleStatusChange("REJECTED")}
-              >
-                <XCircle className="w-4 h-4 mr-1.5" /> Reject
-              </Button>
-            </>
-          )}
+      {/* Middle section: Progress & Alerts */}
+      <div className="flex-1 w-full border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6 flex flex-col justify-center">
+        {/* Progress Tracker */}
+        <div className="relative flex justify-between items-center mb-4 px-2">
+          {/* Connecting line */}
+          <div className="absolute top-2.5 left-6 right-6 h-0.5 bg-gray-200 -z-0">
+            {level > 1 && !isCancelled && (
+              <div
+                className="h-full bg-emerald-500 transition-all duration-500"
+                style={{ width: level === 2 ? '33%' : level === 3 ? '66%' : '100%' }}
+              />
+            )}
+          </div>
 
-          {/* OWNER ACTION: MARK ACTIVE / START RENTAL */}
-          {isOwner && booking.status === "APPROVED" && (
-            <Button
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
-              isLoading={isUpdating}
-              onClick={() => handleStatusChange("ACTIVE")}
-            >
-              <Play className="w-4 h-4 mr-1.5" /> Start Rental (Active)
-            </Button>
-          )}
+          {renderProgressStep("Requested", 1)}
+          {isCancelled ? renderProgressStep("Cancelled", 2) : renderProgressStep("Accepted", 2)}
+          {renderProgressStep("Active", 3)}
+          {renderProgressStep("Completed", 4)}
+        </div>
 
-          {/* OWNER ACTION: MARK COMPLETED */}
-          {isOwner && booking.status === "ACTIVE" && (
-            <Button
-              size="sm"
-              className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
-              isLoading={isUpdating}
-              onClick={() => handleStatusChange("COMPLETED")}
-            >
-              <CheckCircle className="w-4 h-4 mr-1.5" /> Mark Completed
-            </Button>
-          )}
+        {/* Dynamic Alert Box */}
+        {level === 4 && (
+          <div className="bg-emerald-50 rounded-xl p-3 flex gap-3 items-start border border-emerald-100">
+            <div className="mt-0.5"><Star className="w-4 h-4 fill-emerald-600 text-emerald-600" /></div>
+            <div>
+              <p className="text-xs font-bold text-emerald-800">Rental completed successfully!</p>
+              <p className="text-xs text-emerald-600/80">We hope you had a great experience.</p>
+            </div>
+          </div>
+        )}
 
-          {/* RENTER ACTION: CANCEL */}
-          {!isOwner && (booking.status === "PENDING" || booking.status === "REQUESTED" || booking.status === "APPROVED") && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-red-600 border-red-200 hover:bg-red-50"
-              isLoading={isUpdating}
-              onClick={() => handleStatusChange("CANCELLED")}
-            >
-              Cancel Request
-            </Button>
-          )}
+        {(level === 1 || level === 2) && !isCancelled && (
+          <div className="bg-blue-50 rounded-xl p-3 flex gap-3 items-start border border-blue-100">
+            <div className="mt-0.5"><Clock className="w-4 h-4 text-blue-600" /></div>
+            <div>
+              <p className="text-xs font-bold text-blue-800">Your booking request is {level === 1 ? "under review" : "approved"}.</p>
+              <p className="text-xs text-blue-600/80">The {isOwner ? "renter" : "owner"} will respond soon.</p>
+            </div>
+          </div>
+        )}
 
-          {/* ESCROW ACTIONS FOR OWNER */}
-          {isOwner && escrow?.status === "HELD" && booking.status === "COMPLETED" && (
-            <>
-              <Button
-                size="sm"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                isLoading={settleMutation.isPending}
-                onClick={() => settleMutation.mutate("RELEASE")}
-              >
-                Release Deposit
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-orange-600 border-orange-200 hover:bg-orange-50"
-                isLoading={settleMutation.isPending}
-                onClick={() => settleMutation.mutate("REFUND")}
-              >
-                Claim Deposit
-              </Button>
-            </>
-          )}
+        {isCancelled && (
+          <div className="bg-red-50 rounded-xl p-3 flex gap-3 items-start border border-red-100">
+            <div className="mt-0.5"><XCircle className="w-4 h-4 text-red-600" /></div>
+            <div>
+              <p className="text-xs font-bold text-red-800">This booking has been cancelled.</p>
+              <p className="text-xs text-red-600/80">If you have any questions, you can contact the {isOwner ? "renter" : "owner"}.</p>
+            </div>
+          </div>
+        )}
+      </div>
 
-          {/* RENTER ACTION: LEAVE REVIEW */}
-          {!isOwner && booking.status === "COMPLETED" && (
-            <Button
-              size="sm"
-              className="bg-amber-500 hover:bg-amber-600 text-white font-medium"
+      {/* Right section: Actions */}
+      <div className="flex flex-col items-end gap-3 w-full md:w-auto md:min-w-[140px] pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
+        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${level === 4 ? 'bg-purple-100 text-purple-700' :
+          isCancelled ? 'bg-red-50 text-red-700' :
+            'bg-blue-50 text-blue-700'
+          }`}>
+          {booking.status}
+        </span>
+
+        <div className="flex flex-col gap-2 w-full mt-auto">
+          {level === 4 && (
+            <button
               onClick={() => setIsReviewModalOpen(true)}
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-50 transition-colors"
             >
-              <Star className="w-4 h-4 mr-1.5 fill-current" /> Leave Review
-            </Button>
+              <Star className="w-3.5 h-3.5" /> Leave Review
+            </button>
           )}
-        </div>
 
-        {/* CHAT ACTION BUTTON */}
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-gray-700 border-gray-300 hover:bg-gray-50 ml-auto"
-          onClick={handleOpenChat}
-        >
-          <MessageSquare className="w-4 h-4 mr-1.5 text-gray-500" />
-          {isOwner ? "Chat Renter" : "Chat Owner"}
-        </Button>
+          {level < 3 && !isCancelled && !isOwner && (
+            <button
+              onClick={() => handleStatusChange("CANCELLED")}
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50 transition-colors"
+            >
+              <XCircle className="w-3.5 h-3.5" /> Cancel Booking
+            </button>
+          )}
+
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={handleOpenChat}
+              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full border border-gray-200 text-gray-700 text-xs font-bold hover:bg-gray-50 transition-colors"
+            >
+              <MessageSquare className="w-3.5 h-3.5" /> Chat {isOwner ? "Renter" : "Owner"}
+            </button>
+            <button className="p-1.5 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50">
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      <CreateReviewModal
-        isOpen={isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
-        itemId={booking.item_id}
-        bookingId={booking.id}
-      />
+      <CreateReviewModal isOpen={isReviewModalOpen} onClose={() => setIsReviewModalOpen(false)} itemId={booking.item_id} bookingId={booking.id} />
     </div>
   );
 };

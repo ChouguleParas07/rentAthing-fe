@@ -1,4 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap');
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-writing: 'Kalam', cursive;
+}
 
 :root {
   --color-primary: #16a34a;
@@ -15,4 +21,56 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Global Dark Mode Overrides for Premium Theme --- */
+.dark {
+  color-scheme: dark;
+}
+
+.dark .bg-\[\#F8FAF9\],
+.dark .bg-gray-50,
+.dark .bg-amber-50 {
+  background-color: #0f172a !important;
+  /* slate-900 */
+}
+
+.dark .bg-\[\#F2FAF4\] {
+  background-color: #1e293b !important;
+  /* slate-800 */
+}
+
+.dark .bg-white {
+  background-color: #1e293b !important;
+  /* slate-800 */
+}
+
+.dark .text-\[\#1A2530\],
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700 {
+  color: #f8fafc !important;
+  /* slate-50 */
+}
+
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: #94a3b8 !important;
+  /* slate-400 */
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200 {
+  border-color: #334155 !important;
+  /* slate-700 */
+}
+
+/* Ensure our brand green items stay visible and don't get overridden by general rules */
+.dark .text-white {
+  color: #ffffff !important;
+}
+
+.dark .bg-\[\#00A843\] {
+  background-color: #00A843 !important;
 }
