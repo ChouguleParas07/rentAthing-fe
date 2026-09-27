@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "../../routes/routes";
-import { CircleUser, UserRoundKey, Menu, X, Sparkles, UserRoundPen, LayoutDashboard, Moon, Sun } from "lucide-react";
+import { CircleUser, UserRoundKey, Menu, X, Sparkles, UserRoundPen, LayoutDashboard } from "lucide-react";
 
 import { useAppSelector } from "../../store/hooks";
-import { useTheme } from "../../providers/ThemeProvider";
 
 const navLinks = [
   { to: ROUTES.PRODUCTS, label: "Products" },
@@ -13,7 +12,6 @@ const navLinks = [
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  const { theme, toggleTheme } = useTheme();
 
   return (
     <nav className="relative bg-amber-50 shadow-sm overflow-hidden">
@@ -48,9 +46,7 @@ const Navbar = () => {
             </Link>
           ))}
 
-          <button onClick={toggleTheme} className="text-gray-400 hover:text-amber-500 bg-gray-50 hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 rounded-full p-2 transition-all">
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+
 
           {isAuthenticated ? (
             <>

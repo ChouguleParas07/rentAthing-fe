@@ -26,7 +26,7 @@ const Footer = () => {
             <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase">Support</h3>
             <ul className="mt-4 space-y-3">
               <li><Link to="/faq" className="text-sm text-gray-500 hover:text-green-600 transition-colors">FAQ</Link></li>
-              <li><Link to="/contact" className="text-sm text-gray-500 hover:text-green-600 transition-colors">Contact Us</Link></li>
+              <li><a href="https://code-it-green.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 hover:text-green-600 transition-colors">Contact Us</a></li>
               <li><Link to="/trust" className="text-sm text-gray-500 hover:text-green-600 transition-colors">Trust & Safety</Link></li>
             </ul>
           </div>

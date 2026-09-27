@@ -5,13 +5,15 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   User, List, Calendar as CalendarIcon, MessageCircle, Star, Bookmark, CreditCard, Settings,
   ExternalLink, Edit3, Camera, MapPin, Mail, Phone, CheckCircle2,
-  ChevronDown, Check, Info, Sparkles, Pencil, ArrowRight,
-  Shield, Image as ImageIcon, Briefcase, Camera as CameraIcon
+  ChevronDown, Check, Sparkles, Pencil, ArrowRight,
+  Shield, Briefcase, Camera as CameraIcon
 } from "lucide-react";
 import { AvatarCropModal } from "@/components/profile/AvatarCropModal";
 import { authApi } from "@/api/auth";
 import { setUser } from "@/store/authSlice";
-
+import { useItems } from "@/hooks/items/useItems";
+import { useBookings } from "@/hooks/bookings/useBookings";
+import { ROUTES } from "@/routes/routes";
 export const Profile = () => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
@@ -21,6 +23,14 @@ export const Profile = () => {
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Personal Info");
+
+  // Fetch real data to replace hardcoded numbers
+  const { data: userItems } = useItems(user ? { owner_id: user.id } : undefined);
+  const { data: renterBookings } = useBookings(user ? { renter_id: user.id } : undefined);
+  const { data: ownerBookings } = useBookings(user ? { owner_id: user.id } : undefined);
+
+  const activeListingsCount = userItems?.total || 0;
+  const totalBookingsCount = (renterBookings?.total || 0) + (ownerBookings?.total || 0);
 
   if (!user) {
     return (
@@ -75,59 +85,41 @@ export const Profile = () => {
           {/* ================= LEFT SIDEBAR ================= */}
           <div className="w-full lg:w-[260px] shrink-0 space-y-6">
             <nav className="space-y-1">
-              <a href="#" className="flex items-center justify-between px-4 py-3 bg-green-50 text-green-700 rounded-2xl font-bold transition-colors">
+              <Link to={ROUTES.PROFILE} className="flex items-center justify-between px-4 py-3 bg-green-50 text-green-700 rounded-2xl font-bold transition-colors">
                 <div className="flex items-center gap-3">
                   <User className="w-5 h-5" />
                   My Profile
                 </div>
-              </a>
-              <a href="#" className="flex items-center justify-between px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
+              </Link>
+              <Link to={ROUTES.DASHBOARD} className="flex items-center justify-between px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
                 <div className="flex items-center gap-3">
                   <List className="w-5 h-5 text-gray-400" />
                   My Listings
                 </div>
-                <span className="bg-green-100 text-green-700 py-0.5 px-2 rounded-full text-xs font-bold">3</span>
-              </a>
-              <a href="#" className="flex items-center justify-between px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
+                {activeListingsCount > 0 && <span className="bg-green-100 text-green-700 py-0.5 px-2 rounded-full text-xs font-bold">{activeListingsCount}</span>}
+              </Link>
+              <Link to={ROUTES.DASHBOARD} className="flex items-center justify-between px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
                 <div className="flex items-center gap-3">
                   <CalendarIcon className="w-5 h-5 text-gray-400" />
                   My Bookings
                 </div>
-                <span className="bg-green-100 text-green-700 py-0.5 px-2 rounded-full text-xs font-bold">5</span>
-              </a>
-              <a href="#" className="flex items-center justify-between px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
+                {totalBookingsCount > 0 && <span className="bg-green-100 text-green-700 py-0.5 px-2 rounded-full text-xs font-bold">{totalBookingsCount}</span>}
+              </Link>
+              <Link to={ROUTES.MESSAGES} className="flex items-center justify-between px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
                 <div className="flex items-center gap-3">
                   <MessageCircle className="w-5 h-5 text-gray-400" />
                   Messages
                 </div>
-                <span className="bg-green-100 text-green-700 py-0.5 px-2 rounded-full text-xs font-bold">2</span>
-              </a>
-              <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
-                <Star className="w-5 h-5 text-gray-400" />
-                Reviews
-              </a>
-              <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
-                <Bookmark className="w-5 h-5 text-gray-400" />
-                Saved Items
-              </a>
-              <div className="h-px bg-gray-200 my-2 mx-4" />
-              <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
-                <CreditCard className="w-5 h-5 text-gray-400" />
-                Payment Methods
-              </a>
-              <a href="#" className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
-                <Settings className="w-5 h-5 text-gray-400" />
-                Settings
-              </a>
+              </Link>
             </nav>
 
             <div className="bg-gradient-to-br from-green-100 to-green-50 p-6 rounded-3xl relative overflow-hidden border border-green-100">
               <div className="relative z-10">
                 <h3 className="text-xl font-extrabold text-green-900 leading-tight mb-2">Turn your unused items into income</h3>
                 <p className="text-sm text-green-700 font-medium mb-32">List your items and start earning today!</p>
-                <button className="w-full bg-[#00A843] hover:bg-[#009038] text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-green-600/20 transition-all">
+                <Link to={ROUTES.DASHBOARD} className="w-full bg-[#00A843] hover:bg-[#009038] text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-green-600/20 transition-all">
                   Create a Listing <ArrowRight className="w-4 h-4" />
-                </button>
+                </Link>
               </div>
 
               {/* Illustration graphics (Camera, Box, Leaves) */}
@@ -228,33 +220,25 @@ export const Profile = () => {
                       <div className="flex items-center gap-4 text-xs font-semibold text-gray-500 mb-4">
                         <span>@{user.email.split("@")[0]}</span>
                         <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5" /> {user.email}</span>
-                        <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {user.phone || "8999834789"}</span>
-                        <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {user.city || "Pune, Maharashtra"}</span>
+                        {user.phone && <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {user.phone}</span>}
+                        {user.city && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {user.city}</span>}
                       </div>
                     </div>
 
                     <div className="flex gap-4 shrink-0">
                       <div className="text-center">
-                        <div className="text-lg font-extrabold text-gray-900">12</div>
+                        <div className="text-lg font-extrabold text-gray-900">{activeListingsCount}</div>
                         <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Listings</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg font-extrabold text-gray-900">28</div>
+                        <div className="text-lg font-extrabold text-gray-900">{totalBookingsCount}</div>
                         <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Bookings</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg font-extrabold text-gray-900 flex items-center justify-center gap-1"><Star className="w-4 h-4 text-yellow-400" fill="currentColor" /> 4.8</div>
+                        <div className="text-lg font-extrabold text-gray-900 flex items-center justify-center gap-1"><Star className="w-4 h-4 text-yellow-400" fill="currentColor" /> {user.average_rating ? Number(user.average_rating).toFixed(1) : "New"}</div>
                         <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Rating</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-lg font-extrabold text-gray-900">2</div>
-                        <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Years</div>
-                      </div>
                     </div>
-                  </div>
-
-                  <div className="text-sm font-medium text-gray-600 flex items-center gap-1.5 pt-4 border-t border-gray-100">
-                    Tech enthusiast | Love capturing moments | Renting to build a sustainable community <span className="text-green-600">🌱</span>
                   </div>
                 </div>
               </div>
@@ -267,9 +251,9 @@ export const Profile = () => {
                   <Star className="w-6 h-6" fill="currentColor" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-gray-500 flex items-center gap-1">Trust Score <Info className="w-3 h-3" /></div>
-                  <div className="text-lg font-extrabold text-green-700">100 / 100</div>
-                  <div className="text-[11px] text-gray-500 font-medium">Great reputation!</div>
+                  <div className="text-xs font-semibold text-gray-500 flex items-center gap-1">Total Activity</div>
+                  <div className="text-lg font-extrabold text-green-700">{activeListingsCount + totalBookingsCount}</div>
+                  <div className="text-[11px] text-gray-500 font-medium">Interactions</div>
                 </div>
               </div>
               <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex gap-4 items-center">
@@ -277,9 +261,8 @@ export const Profile = () => {
                   <MapPin className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-gray-500">Primary Location</div>
-                  <div className="text-lg font-extrabold text-gray-900">Pune</div>
-                  <div className="text-[11px] text-gray-500 font-medium">India</div>
+                  <div className="text-xs font-semibold text-gray-500">Location</div>
+                  <div className="text-lg font-extrabold text-gray-900 truncate max-w-[100px]">{user.city || "Not specified"}</div>
                 </div>
               </div>
               <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex gap-4 items-center">
@@ -288,8 +271,7 @@ export const Profile = () => {
                 </div>
                 <div>
                   <div className="text-xs font-semibold text-gray-500">Account Status</div>
-                  <div className="text-lg font-extrabold text-gray-900">Verified</div>
-                  <div className="text-[11px] text-gray-500 font-medium">High trust member</div>
+                  <div className="text-lg font-extrabold text-gray-900">{user.is_active ? "Active" : "Inactive"}</div>
                 </div>
               </div>
               <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex gap-4 items-center">
@@ -297,16 +279,16 @@ export const Profile = () => {
                   <Briefcase className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-gray-500">Member Since</div>
-                  <div className="text-lg font-extrabold text-gray-900">Sep 2024</div>
-                  <div className="text-[11px] text-gray-500 font-medium">2 years on Stashly</div>
+                  <div className="text-xs font-semibold text-gray-500">Member Status</div>
+                  <div className="text-lg font-extrabold text-gray-900">Joined</div>
+                  <div className="text-[11px] text-gray-500 font-medium">Recently</div>
                 </div>
               </div>
             </div>
 
             {/* Tabs & Form Layout */}
             <div className="flex gap-2 border-b border-gray-200 pb-4">
-              {['Personal Info', 'Preferences', 'Payment Methods', 'Social Links'].map(tab => (
+              {['Personal Info'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -324,7 +306,7 @@ export const Profile = () => {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
                 <div className="flex items-start gap-3 mb-8">
                   <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
@@ -355,59 +337,15 @@ export const Profile = () => {
                     <label className="block text-xs font-semibold text-gray-700 mb-2">Phone Number</label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input type="text" readOnly value={user.phone || "8999834789"} className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 outline-none" />
+                      <input type="text" readOnly value={user.phone || "Not specified"} className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 outline-none" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-2">Location</label>
                     <div className="relative">
                       <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input type="text" readOnly value={user.city || "Pune, Maharashtra"} className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 outline-none" />
+                      <input type="text" readOnly value={user.city || "Not specified"} className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 outline-none" />
                     </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-2">Bio</label>
-                  <textarea readOnly rows={3} className="w-full px-4 py-3 bg-gray-50 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 outline-none resize-none" value="Tech enthusiast | Love capturing moments | Renting to build a sustainable community 🌱"></textarea>
-                  <div className="text-right text-[10px] text-gray-400 font-bold mt-1">74/200</div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col">
-                <div className="flex items-start gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-                    <ImageIcon className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-extrabold text-gray-900">Profile Photo</h3>
-                    <p className="text-xs text-gray-500 font-medium">Update your profile picture</p>
-                  </div>
-                </div>
-
-                <div className="flex-1 flex flex-col justify-center">
-                  <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center bg-gray-50/50 hover:bg-green-50/30 hover:border-green-300 transition-colors cursor-pointer flex flex-col items-center justify-center mb-6">
-                    <CameraIcon className="w-8 h-8 text-gray-400 mb-3" />
-                    <div className="text-sm font-bold text-gray-700 mb-1">Drag & drop an image<br />or click to upload</div>
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">JPG, PNG (Max 5MB)</div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-green-500 relative">
-                      <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" className="w-full h-full object-cover" alt="" />
-                      <div className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 border border-white rounded-full flex items-center justify-center">
-                        <Check className="w-2 h-2 text-white" />
-                      </div>
-                    </div>
-                    <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gray-100">
-                      <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=100&q=80" className="w-full h-full object-cover" alt="" />
-                    </div>
-                    <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gray-100">
-                      <img src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=100&q=80" className="w-full h-full object-cover" alt="" />
-                    </div>
-                    <button className="w-14 h-14 rounded-2xl border border-gray-200 flex flex-col items-center justify-center text-gray-500 hover:border-gray-400 bg-white">
-                      <span className="text-lg font-light leading-none">+</span>
-                      <span className="text-[9px] font-bold">Add More</span>
-                    </button>
                   </div>
                 </div>
               </div>
@@ -446,9 +384,9 @@ export const Profile = () => {
                   <div className="flex-1 min-w-0 flex justify-between items-center">
                     <div>
                       <div className="text-[11px] font-semibold text-gray-500">Items Rented Out</div>
-                      <div className="text-base font-extrabold text-gray-900">5</div>
+                      <div className="text-base font-extrabold text-gray-900">{activeListingsCount}</div>
                     </div>
-                    <span className="text-[10px] font-bold text-green-600">+2 this month</span>
+                    <span className="text-[10px] font-bold text-green-600">Active</span>
                   </div>
                 </div>
 
@@ -459,9 +397,9 @@ export const Profile = () => {
                   <div className="flex-1 min-w-0 flex justify-between items-center">
                     <div>
                       <div className="text-[11px] font-semibold text-gray-500">Total Earnings</div>
-                      <div className="text-base font-extrabold text-gray-900">₹3,200</div>
+                      <div className="text-base font-extrabold text-gray-900">₹0</div>
                     </div>
-                    <span className="text-[10px] font-bold text-green-600">+18%</span>
+                    <span className="text-[10px] font-bold text-green-600">N/A</span>
                   </div>
                 </div>
 
@@ -471,10 +409,10 @@ export const Profile = () => {
                   </div>
                   <div className="flex-1 min-w-0 flex justify-between items-center">
                     <div>
-                      <div className="text-[11px] font-semibold text-gray-500">Active Bookings</div>
-                      <div className="text-base font-extrabold text-gray-900">3</div>
+                      <div className="text-[11px] font-semibold text-gray-500">Total Bookings</div>
+                      <div className="text-base font-extrabold text-gray-900">{totalBookingsCount}</div>
                     </div>
-                    <span className="text-[10px] font-bold text-green-600">2 upcoming</span>
+                    <span className="text-[10px] font-bold text-green-600">Total</span>
                   </div>
                 </div>
 
@@ -485,9 +423,9 @@ export const Profile = () => {
                   <div className="flex-1 min-w-0 flex justify-between items-center">
                     <div>
                       <div className="text-[11px] font-semibold text-gray-500">Average Rating</div>
-                      <div className="text-base font-extrabold text-gray-900">4.8</div>
+                      <div className="text-base font-extrabold text-gray-900">{user.average_rating ? Number(user.average_rating).toFixed(1) : "New"}</div>
                     </div>
-                    <span className="text-[10px] font-bold text-green-600">+0.2</span>
+                    <span className="text-[10px] font-bold text-green-600">-</span>
                   </div>
                 </div>
               </div>
@@ -522,18 +460,20 @@ export const Profile = () => {
         </div>
       </div>
 
-      {selectedImageSrc && (
-        <AvatarCropModal
-          isOpen={isCropOpen}
-          imageSrc={selectedImageSrc}
-          onClose={() => {
-            setIsCropOpen(false);
-            setSelectedImageSrc(null);
-          }}
-          onSave={handleSaveCroppedAvatar}
-        />
-      )}
-    </div>
+      {
+        selectedImageSrc && (
+          <AvatarCropModal
+            isOpen={isCropOpen}
+            imageSrc={selectedImageSrc}
+            onClose={() => {
+              setIsCropOpen(false);
+              setSelectedImageSrc(null);
+            }}
+            onSave={handleSaveCroppedAvatar}
+          />
+        )
+      }
+    </div >
   );
 };
 

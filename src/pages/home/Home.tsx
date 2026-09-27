@@ -39,7 +39,7 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2FAF4]">
+    <div className="min-h-screen" style={{ backgroundImage: "url('/assets/back.png')", backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }}>
       {/* Hero Section */}
       <section className="relative px-4 pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden">
         {/* Soft Background Blob */}
@@ -191,7 +191,7 @@ const Home = () => {
                     <span className="font-writing text-gray-800 text-sm rotate-[-5deg] bg-white px-3 py-1 rounded-full shadow-sm whitespace-nowrap">Gear up for adventure</span>
                   </div>
                   <div className="p-2.5 bg-white rounded-2xl shadow-lg w-40 h-40">
-                    <img src="https://images.unsplash.com/photo-1504280390227-3ce9d0847f97?auto=format&fit=crop&w=400&q=80" alt="Tent" className="w-full h-full object-cover rounded-xl" />
+                    <img src="https://images.unsplash.com/photo-1537225228614-56cc3556d7ed?auto=format&fit=crop&w=400&q=80" alt="Tent" className="w-full h-full object-cover rounded-xl" />
                   </div>
                 </motion.div>
 

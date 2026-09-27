@@ -2,11 +2,12 @@ import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-  Search, MapPin, Calendar, ArrowUpDown, LayoutGrid, List, Filter,
+  Search, MapPin, LayoutGrid, List,
   Wrench, Laptop, Tent, Sofa, Trophy, Car,
   Camera, PartyPopper, MoreHorizontal, ArrowRight, Star, Heart
 } from "lucide-react";
 
+import { useCategories } from "@/hooks/categories/useCategories";
 import { useItems } from "@/hooks/items/useItems";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -27,10 +28,22 @@ const UI_CATEGORIES = [
 const Products = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+  const [locationFilter, setLocationFilter] = useState<string>("");
   const [categoryId, setCategoryId] = useState<string>("all");
+  const [selectedUiCat, setSelectedUiCat] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [sortBy, setSortBy] = useState<"latest" | "price_asc" | "price_desc">("latest");
   const [page, setPage] = useState(1);
   const limit = 12;
-  const { data, isLoading } = useItems({ limit, skip: (page - 1) * limit, search: searchQuery, category_id: categoryId === "all" ? undefined : categoryId });
+  const combinedSearch = [searchQuery, locationFilter].filter(Boolean).join(" ") || undefined;
+  const { data, isLoading } = useItems({ limit, skip: (page - 1) * limit, search: combinedSearch, category_id: categoryId === "all" ? undefined : categoryId });
+  const { data: dbCategories } = useCategories();
+
+  const sortedItems = [...(data?.items || [])].sort((a, b) => {
+    if (sortBy === "price_asc") return Number(a.daily_price) - Number(b.daily_price);
+    if (sortBy === "price_desc") return Number(b.daily_price) - Number(a.daily_price);
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+  });
 
   const handleSearch = () => {
     setSearchQuery(searchInputRef.current?.value || undefined);
@@ -84,11 +97,23 @@ const Products = () => {
           <div className="flex items-center gap-3 overflow-x-auto pb-4 mt-8 no-scrollbar">
             {UI_CATEGORIES.map((cat) => {
               const Icon = cat.icon;
-              const isActive = categoryId === cat.id;
+              const isActive = selectedUiCat === cat.id;
               return (
                 <button
                   key={cat.id}
-                  onClick={() => { setCategoryId(cat.id); setPage(1); }}
+                  onClick={() => {
+                    setSelectedUiCat(cat.id);
+                    if (cat.id === "all") {
+                      setCategoryId("all");
+                    } else if (dbCategories) {
+                      const matched = dbCategories.find(c =>
+                        c.name.toLowerCase().includes(cat.name.split(' ')[0].toLowerCase()) ||
+                        cat.id.toLowerCase() === c.name.toLowerCase()
+                      );
+                      setCategoryId(matched ? matched.id : cat.id);
+                    }
+                    setPage(1);
+                  }}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-colors shadow-sm ${isActive ? "bg-[#00A843] text-white" : "bg-white text-gray-600 border border-gray-100 hover:border-gray-200 hover:bg-gray-50"
                     }`}
                 >
@@ -106,38 +131,46 @@ const Products = () => {
         {/* Filters Toolbar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-semibold text-gray-700 shadow-sm whitespace-nowrap hover:bg-gray-50">
-              <MapPin className="w-4 h-4 text-gray-400" /> Pune <ArrowUpDown className="w-3 h-3 ml-2 text-gray-400" />
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-semibold text-gray-700 shadow-sm whitespace-nowrap hover:bg-gray-50">
-              <Calendar className="w-4 h-4 text-gray-400" /> Select dates <ArrowUpDown className="w-3 h-3 ml-2 text-gray-400" />
-            </button>
+            <div className="flex items-center gap-2 px-4 py-1.5 bg-white border border-gray-200 rounded-full text-sm font-semibold text-gray-700 shadow-sm focus-within:border-green-400 focus-within:ring-1 focus-within:ring-green-400 transition-all">
+              <MapPin className="w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Location (e.g. Pune)"
+                className="outline-none bg-transparent w-32"
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
+              />
+            </div>
+            {/* The date filter requires backend support, hiding it for now to avoid false promises */}
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">
-              <ArrowUpDown className="w-4 h-4 text-gray-400" /> Sort by: Latest <ArrowUpDown className="w-3 h-3 ml-2 text-gray-400" />
-            </button>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-semibold text-gray-700 shadow-sm outline-none cursor-pointer"
+            >
+              <option value="latest">Sort by: Latest</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+            </select>
             <div className="flex items-center bg-white border border-gray-200 rounded-full shadow-sm p-1">
-              <button className="p-1.5 rounded-full bg-[#00A843] text-white"><LayoutGrid className="w-4 h-4" /></button>
-              <button className="p-1.5 rounded-full text-gray-500 hover:text-gray-700"><List className="w-4 h-4" /></button>
+              <button onClick={() => setViewMode("grid")} className={`p-1.5 rounded-full ${viewMode === 'grid' ? 'bg-[#00A843] text-white' : 'text-gray-500 hover:text-gray-700'}`}><LayoutGrid className="w-4 h-4" /></button>
+              <button onClick={() => setViewMode("list")} className={`p-1.5 rounded-full ${viewMode === 'list' ? 'bg-[#00A843] text-white' : 'text-gray-500 hover:text-gray-700'}`}><List className="w-4 h-4" /></button>
             </div>
-            <button className="flex items-center gap-2 px-5 py-2 bg-white border border-gray-200 rounded-full text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">
-              <Filter className="w-4 h-4 text-gray-400" /> Filters
-            </button>
           </div>
         </div>
 
         {/* Products Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2'}`}>
             {[...Array(12)].map((_, i) => (
-              <div key={i} className="animate-pulse bg-gray-200 h-96 rounded-3xl" />
+              <div key={i} className={`animate-pulse bg-gray-200 rounded-3xl ${viewMode === 'grid' ? 'h-96' : 'h-48'}`} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {data?.items?.length ? data.items.map((item, idx) => {
+          <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1 lg:grid-cols-2'}`}>
+            {sortedItems.length ? sortedItems.map((item, idx) => {
               // Map backend category string to our UI categories
               const catName = item.category?.name?.toLowerCase() || "";
               const categoryMatch = UI_CATEGORIES.find(c => catName.includes(c.id) || c.id === catName) || UI_CATEGORIES[9];
@@ -161,9 +194,9 @@ const Products = () => {
                   viewport={{ once: true }}
                 >
                   <Link to={`/items/${item.id}`} className="block group h-full">
-                    <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 bg-white h-full flex flex-col rounded-3xl">
+                    <Card className={`overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1 bg-white h-full flex ${viewMode === 'grid' ? 'flex-col' : 'flex-row'} rounded-3xl`}>
                       {/* Image Area */}
-                      <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
+                      <div className={`${viewMode === 'grid' ? 'aspect-[4/3] w-full' : 'w-48 h-full'} relative overflow-hidden bg-gray-100 shrink-0`}>
                         <img
                           src={item.images?.[0]?.url || `https://placehold.co/400x300/e2e8f0/1e293b?text=${encodeURIComponent(item.title)}`}
                           alt={item.title}
@@ -219,7 +252,7 @@ const Products = () => {
                           <div>
                             <div className="flex items-center gap-1 text-gray-400 mb-1">
                               <MapPin className="w-3 h-3" />
-                              <span className="text-[10px] font-semibold uppercase tracking-wider">Pune</span>
+                              <span className="text-[10px] font-semibold uppercase tracking-wider">{item.location_text || "Anywhere"}</span>
                             </div>
                             <div className="font-extrabold text-[#00A843] text-lg leading-none">
                               ₹{item.daily_price}<span className="text-sm font-semibold text-gray-600">/day</span>

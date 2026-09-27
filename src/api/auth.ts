@@ -30,6 +30,7 @@ export type AuthenticatedUser = {
   role: string;
   is_active: boolean;
   is_verified: boolean;
+  average_rating?: number | null;
 };
 
 export const authApi = {

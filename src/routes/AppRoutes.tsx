@@ -22,6 +22,7 @@ const ChatPage = lazy(() => import("../pages/chat/ChatPage").then(m => ({ defaul
 const PublicProfile = lazy(() => import("../pages/profile/PublicProfile").then(m => ({ default: m.PublicProfile })));
 const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
 const NotFound = lazy(() => import("../components/common/NotFound"));
+const StaticPage = lazy(() => import("../pages/StaticPage"));
 
 const LazyFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -40,6 +41,14 @@ const AppRoutes = () => {
             <Route path="/items/:id" element={<ItemDetails />} />
             <Route path={ROUTES.USER_PROFILE} element={<PublicProfile />} />
             <Route path="/profile/:id" element={<PublicProfile />} />
+
+            {/* Static pages from Footer */}
+            <Route path="/how-it-works" element={<StaticPage />} />
+            <Route path="/faq" element={<StaticPage />} />
+            <Route path="/contact" element={<StaticPage />} />
+            <Route path="/trust" element={<StaticPage />} />
+            <Route path="/terms" element={<StaticPage />} />
+            <Route path="/privacy" element={<StaticPage />} />
           </Route>
 
           <Route element={<PublicRoutes />}>
