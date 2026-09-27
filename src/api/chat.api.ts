@@ -43,7 +43,7 @@ export class ChatWebSocket {
   }
 
   connect() {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+    const baseUrl = import.meta.env.VITE_API_URL || "https://rent-a-thing-seven.vercel.app";
     const wsBase = baseUrl.replace(/^http/, "ws");
     const wsUrl = `${wsBase}/chat/ws/${this.conversationId}`;
     this.ws = new WebSocket(wsUrl, [this.token]);

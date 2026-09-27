@@ -2,7 +2,7 @@ import axios from "axios";
 import { toast } from "sonner";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || "https://rent-a-thing-seven.vercel.app",
   headers: {
     "Content-Type": "application/json",
   },
@@ -29,7 +29,7 @@ api.interceptors.response.use(
 
       if (refreshToken) {
         try {
-          const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {
+          const res = await axios.post(`${import.meta.env.VITE_API_URL || "https://rent-a-thing-seven.vercel.app"}/auth/refresh`, {
             refresh_token: refreshToken
           });
 
