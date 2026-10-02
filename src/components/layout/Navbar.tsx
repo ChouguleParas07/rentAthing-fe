@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "../../routes/routes";
-import { CircleUser, UserRoundKey, Menu, X, Sparkles, UserRoundPen, LayoutDashboard } from "lucide-react";
+import { CircleUser, UserRoundKey, Menu, X, Sparkles, UserRoundPen, LayoutDashboard, LogOut } from "lucide-react";
 
-import { useAppSelector } from "../../store/hooks";
+import { useAppSelector, useAppDispatch } from "../../store/hooks";
+import { logout } from "../../store/authSlice";
+import { authApi } from "@/api/auth";
+import { useNavigate } from "react-router-dom";
 
 const navLinks = [
   { to: ROUTES.PRODUCTS, label: "Products" },
@@ -12,6 +15,20 @@ const navLinks = [
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+    } catch (error) {
+      // ignore
+    } finally {
+      dispatch(logout());
+      navigate(ROUTES.LOGIN);
+      setOpen(false);
+    }
+  };
 
   return (
     <nav className="relative bg-amber-50 shadow-sm overflow-hidden">
@@ -66,6 +83,15 @@ const Navbar = () => {
                   <UserRoundPen size={20} strokeWidth={2} />
                 </div>
               </Link>
+              <button
+                onClick={handleLogout}
+                className="group relative py-1.5 px-1 text-red-500 hover:text-red-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 rounded-md ml-2"
+                title="Logout"
+              >
+                <div className="flex">
+                  <LogOut size={20} strokeWidth={2} />
+                </div>
+              </button>
 
             </>
           ) : (
@@ -120,6 +146,11 @@ const Navbar = () => {
                   <CircleUser className="w-4 h-4" /> profile
                 </div>
               </Link>
+              <button onClick={handleLogout} className="w-fit mt-2">
+                <div className="bg-red-50 text-red-600 border border-red-200 px-4 py-1.5 font-bold font-mono rounded-full flex items-center gap-1 hover:bg-red-100 transition-colors">
+                  <LogOut className="w-4 h-4" /> Logout
+                </div>
+              </button>
 
             </>
           ) : (
