@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
-  User, List, Calendar as CalendarIcon, MessageCircle, Star, Bookmark, CreditCard, Settings,
-  ExternalLink, Edit3, Camera, MapPin, Mail, Phone, CheckCircle2,
+  User, List, Calendar as CalendarIcon, MessageCircle, Star, CreditCard, Settings,
+  Camera, MapPin, Mail, Phone, CheckCircle2,
   ChevronDown, Check, Sparkles, Pencil, ArrowRight,
-  Shield, Briefcase, Camera as CameraIcon
+  Shield, Camera as CameraIcon,
+  Heart, Package, Users, Eye, Sliders
 } from "lucide-react";
 import { AvatarCropModal } from "@/components/profile/AvatarCropModal";
 import { authApi } from "@/api/auth";
@@ -111,6 +112,18 @@ export const Profile = () => {
                   Messages
                 </div>
               </Link>
+              <Link to={ROUTES.DASHBOARD} className="flex items-center justify-between px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
+                <div className="flex items-center gap-3">
+                  <Heart className="w-5 h-5 text-gray-400" />
+                  Favourite Items
+                </div>
+              </Link>
+              <Link to={ROUTES.DASHBOARD} className="flex items-center justify-between px-4 py-3 text-gray-600 hover:bg-white hover:text-gray-900 rounded-2xl font-semibold transition-colors">
+                <div className="flex items-center gap-3">
+                  <Settings className="w-5 h-5 text-gray-400" />
+                  Settings
+                </div>
+              </Link>
             </nav>
 
             <div className="bg-gradient-to-br from-green-100 to-green-50 p-6 rounded-3xl relative overflow-hidden border border-green-100">
@@ -151,11 +164,11 @@ export const Profile = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Link to={`/profile/${user.id}`} className="px-5 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm">
-                  <ExternalLink className="w-4 h-4" /> Public Profile
+                  <Eye className="w-4 h-4" /> View Public Profile
                 </Link>
-                <button className="px-6 py-2.5 rounded-full bg-[#00A843] hover:bg-[#009038] text-white text-sm font-bold shadow-md shadow-[#00A843]/20 transition-all flex items-center gap-2">
-                  <Edit3 className="w-4 h-4" /> Edit Profile
-                </button>
+                <Link to={ROUTES.EDIT_PROFILE} className="px-6 py-2.5 rounded-full bg-[#00A843] hover:bg-[#009038] text-white text-sm font-bold shadow-md shadow-[#00A843]/20 transition-all flex items-center gap-2">
+                  <Pencil className="w-4 h-4" /> Edit Profile
+                </Link>
               </div>
             </div>
 
@@ -206,16 +219,9 @@ export const Profile = () => {
                       <div className="flex items-center gap-2 mb-1.5">
                         <h2 className="text-2xl font-extrabold text-gray-900 truncate">{name}</h2>
                         <CheckCircle2 className="w-5 h-5 text-[#00A843]" fill="#dcfce7" />
-                        <span className="ml-2 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-green-50 text-green-700 border border-green-200 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> {user.role}
+                        <span className="ml-2 px-2.5 py-1 rounded-full text-[10px] font-extrabold text-green-700 bg-green-50 border border-green-200 flex items-center gap-1">
+                          <Shield className="w-3 h-3" fill="currentColor" /> Verified Member
                         </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold text-gray-600 bg-gray-100 border border-gray-200">
-                          Verified Member
-                        </span>
-                        <div className="ml-2 flex items-center gap-2 bg-gray-100 rounded-full px-1 py-1 pr-3">
-                          <div className="w-6 h-4 bg-[#00A843] rounded-full flex items-center p-0.5"><div className="w-3 h-3 bg-white rounded-full ml-auto shadow-sm"></div></div>
-                          <span className="text-[10px] font-bold text-gray-600">Available to Rent</span>
-                        </div>
                       </div>
                       <div className="flex items-center gap-4 text-xs font-semibold text-gray-500 mb-4">
                         <span>@{user.email.split("@")[0]}</span>
@@ -248,11 +254,11 @@ export const Profile = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex gap-4 items-center">
                 <div className="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
-                  <Star className="w-6 h-6" fill="currentColor" />
+                  <Package className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="text-xs font-semibold text-gray-500 flex items-center gap-1">Total Activity</div>
-                  <div className="text-lg font-extrabold text-green-700">{activeListingsCount + totalBookingsCount}</div>
+                  <div className="text-lg font-extrabold text-gray-900">{activeListingsCount + totalBookingsCount}</div>
                   <div className="text-[11px] text-gray-500 font-medium">Interactions</div>
                 </div>
               </div>
@@ -276,31 +282,30 @@ export const Profile = () => {
               </div>
               <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex gap-4 items-center">
                 <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
-                  <Briefcase className="w-6 h-6" />
+                  <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-gray-500">Member Status</div>
-                  <div className="text-lg font-extrabold text-gray-900">Joined</div>
-                  <div className="text-[11px] text-gray-500 font-medium">Recently</div>
+                  <div className="text-xs font-semibold text-gray-500">Member Since</div>
+                  <div className="text-lg font-extrabold text-gray-900">Recently Joined</div>
                 </div>
               </div>
             </div>
 
             {/* Tabs & Form Layout */}
-            <div className="flex gap-2 border-b border-gray-200 pb-4">
-              {['Personal Info'].map(tab => (
+            <div className="flex gap-2 pb-4">
+              {['Personal Information', 'Account Settings', 'Preferences', 'Payment Methods'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${activeTab === tab
                     ? "bg-[#00A843] text-white shadow-md shadow-green-600/20"
-                    : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                    : "bg-transparent text-gray-600 hover:bg-gray-50"
                     }`}
                 >
-                  {tab === 'Personal Info' && <User className="w-4 h-4" />}
-                  {tab === 'Preferences' && <Settings className="w-4 h-4" />}
+                  {tab === 'Personal Information' && <User className="w-4 h-4" />}
+                  {tab === 'Account Settings' && <Settings className="w-4 h-4" />}
+                  {tab === 'Preferences' && <Sliders className="w-4 h-4" />}
                   {tab === 'Payment Methods' && <CreditCard className="w-4 h-4" />}
-                  {tab === 'Social Links' && <ExternalLink className="w-4 h-4" />}
                   {tab}
                 </button>
               ))}
@@ -312,10 +317,13 @@ export const Profile = () => {
                   <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0">
                     <User className="w-5 h-5 text-green-600" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-base font-extrabold text-gray-900">Personal Information</h3>
-                    <p className="text-xs text-gray-500 font-medium">Basic details about your account</p>
+                    <p className="text-xs text-gray-500 font-medium">Basic details about your account.</p>
                   </div>
+                  <Link to={ROUTES.EDIT_PROFILE} className="px-5 py-2 bg-[#00A843] hover:bg-[#009038] text-white rounded-full text-xs font-bold shadow-md shadow-green-600/20 transition-all flex items-center gap-2">
+                    <Pencil className="w-3.5 h-3.5" /> Edit
+                  </Link>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
@@ -362,10 +370,19 @@ export const Profile = () => {
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-[11px] font-medium text-gray-500 mb-3">Share a little about yourself</p>
-              <p className="text-xs font-semibold text-gray-700 leading-relaxed">
+              <p className="text-xs font-semibold text-gray-700 leading-relaxed mb-5">
                 Passionate about technology, photography, and sustainable living. I love exploring new places, capturing moments, and renting out items to help build a more sustainable and sharing community.
               </p>
+              <div className="flex flex-wrap gap-2">
+                {['Technology', 'Photography', 'Sustainable Living', 'Travel', 'Community'].map(tag => (
+                  <span key={tag} className="px-3 py-1.5 bg-gray-50 text-gray-600 rounded-full text-[11px] font-bold border border-gray-100">
+                    {tag}
+                  </span>
+                ))}
+                <button className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50">
+                  <span className="text-sm font-bold">+</span>
+                </button>
+              </div>
             </div>
 
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
@@ -379,7 +396,7 @@ export const Profile = () => {
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
-                    <Bookmark className="w-4 h-4" />
+                    <Package className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0 flex justify-between items-center">
                     <div>
@@ -405,7 +422,7 @@ export const Profile = () => {
 
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                    <Briefcase className="w-4 h-4" />
+                    <CalendarIcon className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0 flex justify-between items-center">
                     <div>

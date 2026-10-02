@@ -9,6 +9,8 @@ import { BookingCard } from "@/components/booking/BookingCard";
 import { CreateItemModal } from "@/components/items/CreateItemModal";
 import { useItems } from "@/hooks/items/useItems";
 import { ItemCard } from "@/components/items/ItemCard";
+import { useQuery } from "@tanstack/react-query";
+import { chatApi } from "@/api/chat.api";
 
 const Dashboard = () => {
   const { data: user, isLoading: isUserLoading } = useProfile();
@@ -29,6 +31,15 @@ const Dashboard = () => {
   const { data: userItems, isLoading: isUserItemsLoading } = useItems(
     user ? { owner_id: user.id, limit: 100 } : undefined
   );
+
+  const { data: messagesResponse } = useQuery({
+    queryKey: ["messages", "all"],
+    queryFn: () => chatApi.getConversations({ limit: 100 }),
+    enabled: !!user,
+  });
+
+  const messages = messagesResponse?.items || messagesResponse?.messages || [];
+  const conversationsCount = new Set(messages.map((m: any) => m.sender_id === user?.id ? m.receiver_id : m.sender_id)).size;
 
   if (isUserLoading) return <div className="p-8 text-center text-gray-500">Loading dashboard...</div>;
   if (!user) return <div className="p-8 text-center text-gray-500">Please sign in.</div>;
@@ -95,7 +106,9 @@ const Dashboard = () => {
                 className={`flex items-center px-6 py-3 rounded-full text-sm font-bold transition-all shadow-sm bg-white text-gray-700 border border-gray-200 hover:bg-gray-50`}
               >
                 <MessageCircle className="w-4 h-4 mr-2" /> Messages
-                <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-0.5 text-[10px]">3</span>
+                {conversationsCount > 0 && (
+                  <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-0.5 text-[10px]">{conversationsCount}</span>
+                )}
               </button>
             </div>
           </div>

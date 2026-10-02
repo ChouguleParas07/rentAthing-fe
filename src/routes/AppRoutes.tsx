@@ -18,6 +18,7 @@ const ForgotPassword = lazy(() => import("../pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("../pages/auth/ResetPassword"));
 const Dashboard = lazy(() => import("../pages/dashboard/Dashboard"));
 const Profile = lazy(() => import("../pages/profile/Profile"));
+const EditProfile = lazy(() => import("../pages/profile/EditProfile")); // Trigger TS update
 const ChatPage = lazy(() => import("../pages/chat/ChatPage").then(m => ({ default: m.ChatPage })));
 const PublicProfile = lazy(() => import("../pages/profile/PublicProfile").then(m => ({ default: m.PublicProfile })));
 const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard").then(m => ({ default: m.AdminDashboard })));
@@ -65,6 +66,7 @@ const AppRoutes = () => {
             <Route element={<DashboardLayout />}>
               <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
               <Route path={ROUTES.PROFILE} element={<Profile />} />
+              <Route path={ROUTES.EDIT_PROFILE} element={<EditProfile />} />
               <Route path={ROUTES.MESSAGES} element={<ChatPage />} />
               <Route path={ROUTES.ADMIN} element={<AdminDashboard />} />
             </Route>

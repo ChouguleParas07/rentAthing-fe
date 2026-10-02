@@ -12,7 +12,7 @@ export const useRegister = () => {
     mutationFn: (payload: RegisterPayload) => authApi.register(payload),
     onSuccess: () => {
       toast.success("Account created. Please verify your email.");
-      navigate(ROUTES.LOGIN);
+      navigate(ROUTES.VERIFY_EMAIL);
     },
     onError: (error: any) => {
       const message = error.response?.data?.detail || "Registration failed. Please check your details.";

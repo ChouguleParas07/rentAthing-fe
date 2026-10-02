@@ -56,8 +56,11 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({
     setIsSaving(true);
 
     try {
+      const DOM_SIZE = 256; // 64 * 4 = 256px from w-64
+      const size = 512; // Export size
+      const ratio = size / DOM_SIZE;
+
       const canvas = document.createElement("canvas");
-      const size = 300;
       canvas.width = size;
       canvas.height = size;
       const ctx = canvas.getContext("2d");
@@ -70,8 +73,14 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({
         // Save state and translate to center for transformation
         ctx.save();
         ctx.translate(size / 2, size / 2);
-        ctx.rotate((rotation * Math.PI) / 180);
+
+        // Apply pan offset
+        const offsetX = position.x * ratio;
+        const offsetY = position.y * ratio;
+        ctx.translate(offsetX, offsetY);
+
         ctx.scale(scale, scale);
+        ctx.rotate((rotation * Math.PI) / 180);
 
         const img = imageRef.current;
         const aspect = img.naturalWidth / img.naturalHeight;
@@ -86,11 +95,7 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({
           drawHeight = size / aspect;
         }
 
-        // Apply pan offset
-        const offsetX = (position.x / 150) * (size / 2);
-        const offsetY = (position.y / 150) * (size / 2);
-
-        ctx.drawImage(img, -drawWidth / 2 + offsetX, -drawHeight / 2 + offsetY, drawWidth, drawHeight);
+        ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
         ctx.restore();
 
         // Create round mask preview export
@@ -122,18 +127,34 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-green-600 shadow-xl bg-gray-900 cursor-grab active:cursor-grabbing select-none flex items-center justify-center group"
+          className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-green-600 shadow-xl bg-white cursor-grab active:cursor-grabbing select-none flex items-center justify-center group"
         >
-          <img
-            ref={imageRef}
-            src={imageSrc}
-            alt="Profile Preview"
+          <div
+            className="absolute pointer-events-none flex items-center justify-center"
             style={{
-              transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${rotation}deg)`,
+              left: '50%', top: '50%',
+              transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px)) scale(${scale}) rotate(${rotation}deg)`,
               transition: isDragging ? "none" : "transform 0.15s ease-out",
             }}
-            className="max-w-none w-full h-full object-cover pointer-events-none"
-          />
+          >
+            <img
+              ref={imageRef}
+              src={imageSrc}
+              alt="Profile Preview"
+              className="max-w-none pointer-events-none block"
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                const aspect = img.naturalWidth / img.naturalHeight;
+                if (aspect > 1) {
+                  img.style.height = '256px';
+                  img.style.width = 'auto';
+                } else {
+                  img.style.width = '256px';
+                  img.style.height = 'auto';
+                }
+              }}
+            />
+          </div>
 
           {/* Semi-transparent Grid Overlay Guide */}
           <div className="absolute inset-0 rounded-full border border-white/40 pointer-events-none" />
@@ -150,7 +171,7 @@ export const AvatarCropModal: React.FC<AvatarCropModalProps> = ({
             <ZoomOut className="w-4 h-4 text-gray-400 shrink-0" />
             <input
               type="range"
-              min="0.8"
+              min="1"
               max="3"
               step="0.05"
               value={scale}

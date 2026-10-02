@@ -83,22 +83,6 @@ export const ChatPage = () => {
 
   const messages = messagesResponse?.items || messagesResponse?.messages || [];
 
-  useEffect(() => {
-    if (messages && messages.length > 0 && !activeConversation) {
-      const convos = getUniqueConversations();
-      if (convos.length > 0) {
-        const urlUserId = searchParams.get("user_id");
-        if (urlUserId) {
-          const matched = convos.find(c => c.otherUserId === urlUserId);
-          if (matched) setActiveConversation(matched);
-          else setActiveConversation(convos[0]);
-        } else {
-          setActiveConversation(convos[0]);
-        }
-      }
-    }
-  }, [messages, searchParams]);
-
   const getUniqueConversations = () => {
     if (!messages) return [];
     const convos = new Map<string, ConversationItem>();
@@ -122,6 +106,29 @@ export const ChatPage = () => {
   };
 
   const conversations = getUniqueConversations();
+
+  useEffect(() => {
+    if (!activeConversation && !isLoading) {
+      const urlUserId = searchParams.get("user_id");
+
+      if (urlUserId) {
+        const matched = conversations.find(c => c.otherUserId === urlUserId);
+        if (matched) {
+          setActiveConversation(matched);
+        } else {
+          // Create a temporary conversation for the new chat
+          setActiveConversation({
+            id: `new-${urlUserId}`,
+            otherUserId: urlUserId,
+            lastMessage: "Start a new conversation",
+            timestamp: new Date().toISOString()
+          });
+        }
+      } else if (conversations.length > 0) {
+        setActiveConversation(conversations[0]);
+      }
+    }
+  }, [messages, searchParams, activeConversation, isLoading, conversations.length]);
 
   return (
     <div className="min-h-screen bg-[#F8FAF9] px-6 py-10 md:px-12 pb-20 overflow-x-hidden relative z-0">
@@ -171,10 +178,14 @@ export const ChatPage = () => {
               </div>
               <div className="flex gap-2">
                 <button className="flex-1 bg-[#00A843] text-white py-2 px-3 rounded-xl text-xs font-bold shadow-sm shadow-green-600/20 flex items-center justify-center gap-1.5">
-                  <MessageCircle className="w-3.5 h-3.5" /> All Chats <span className="bg-white/20 px-1.5 rounded-full text-[10px]">2</span>
+                  <MessageCircle className="w-3.5 h-3.5" /> All Chats
+                  {conversations.length > 0 && (
+                    <span className="bg-white/20 px-1.5 rounded-full text-[10px]">{conversations.length}</span>
+                  )}
                 </button>
                 <button className="flex-1 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 py-2 px-3 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5">
-                  <Inbox className="w-3.5 h-3.5 text-gray-400" /> Unread <span className="bg-gray-100 text-gray-600 px-1.5 rounded-full text-[10px]">1</span>
+                  <Inbox className="w-3.5 h-3.5 text-gray-400" /> Unread
+                  {/* Assuming unread count is 0 for now. Only show if we actually have unread. */}
                 </button>
                 <button className="p-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 flex items-center justify-center font-bold text-xs gap-1">
                   <Archive className="w-3.5 h-3.5 text-gray-400" /> Archived
